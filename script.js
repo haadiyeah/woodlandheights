@@ -9,22 +9,20 @@ canvas.height = 64 * 9
 const GRAVITY = 0.9;
 const JUMP_FORCE = -15;
 const MOVEMENT_SPEED = 5;
-const BACKGROUND_SCALE =0.9; //how much to zoom in background
+const BACKGROUND_SCALE =2.4; //how much to zoom in background
 
 //---------------------Key Controls---------------------
 const KEYS = {
-    ArrowLeft: {
+    a: {
         pressed: false
     },
-    ArrowRight: {
+    d: {
         pressed: false
     },
-    ArrowUp: {
+    w: {
         pressed: false
     }
 }
-
-//console.log(floorCollissions)
 
 //map width = 70 tiles
 //map height = 40 tiles
@@ -80,7 +78,13 @@ const scaledCanvas = {
     height: canvas.height/BACKGROUND_SCALE
 }
 
-const player = new Player();
+const player = new Player( {
+    position: {
+        x: 330, 
+        y:100
+    },
+    imgSrc: './img/Player/Idle.png'
+})
 
 //DIMESIONS: 1120 x 641
 const backgroundLev1 = new Sprite({
@@ -106,22 +110,24 @@ function animate() {
     canvasContext.scale(BACKGROUND_SCALE,BACKGROUND_SCALE); ///does not affect original dimensions of the image
     canvasContext.translate(0, -backgroundLev1.image.height + scaledCanvas.height )
     backgroundLev1.update();
+    //Draw out the collission blocks
     collissionBlocksArray.forEach(collissionBlick => {
         collissionBlick.update();
     })
-    
+    //Draw out the platforms
     platformBlocksArray.forEach(platform => {
         platform.update();
     })
+    //Draw out the player
     player.update();
 
     canvasContext.restore();
 
     //Player Movement
-    if (KEYS.ArrowLeft.pressed && player.lastKey == 'ArrowLeft') {
+    if (KEYS.a.pressed && player.lastKey == 'a') {
         player.velocity.x = -MOVEMENT_SPEED;
         //player2.setSprite('run');
-    } else if (KEYS.ArrowRight.pressed && player.lastKey == 'ArrowRight') {
+    } else if (KEYS.d.pressed && player.lastKey == 'd') {
         player.velocity.x = MOVEMENT_SPEED;
         //player2.setSprite('run');
     } else {
@@ -138,18 +144,20 @@ animate();
 window.addEventListener('keydown', (event) => {
     switch (event.key) {
         // --- MOvement
-        case 'ArrowUp':
-            if (player.velocity.y == 0)
+        case 'w':
+            if (player.velocity.y > -0.5 && player.velocity.y < 0.5)
                 player.velocity.y = JUMP_FORCE
-            KEYS.ArrowUp.pressed = true
+            KEYS.w.pressed = true
             break
-        case 'ArrowRight':
-            player.lastKey = 'ArrowRight'
-            KEYS.ArrowRight.pressed = true
+        case 'd':
+        case 'D':
+            player.lastKey = 'd'
+            KEYS.d.pressed = true
             break
-        case 'ArrowLeft':
-            player.lastKey = 'ArrowLeft'
-            KEYS.ArrowLeft.pressed = true
+        case 'a':
+        case 'A':
+            player.lastKey = 'a'
+            KEYS.a.pressed = true
             break
         // ---  Attack
         case ' ':
@@ -175,14 +183,14 @@ window.addEventListener('keydown', (event) => {
 
 window.addEventListener('keyup', (event) => {
 switch (event.key) {
-    case 'ArrowUp':
-        KEYS.ArrowUp.pressed = false
+    case 'w':
+        KEYS.w.pressed = false
         break
-    case 'ArrowRight':
-        KEYS.ArrowRight.pressed = false
+    case 'd':
+        KEYS.d.pressed = false
         break
-    case 'ArrowLeft':
-        KEYS.ArrowLeft.pressed = false
+    case 'a':
+        KEYS.a.pressed = false
         break
 }
 })

@@ -4,6 +4,8 @@ class Sprite {
         this.image=new Image();
         this.image.onload = () => {
             this.loaded = true
+            this.width= this.image.width
+            this.height = this.image.height
         }
         this.image.src = imageSrc
         this.loaded=false
@@ -21,14 +23,15 @@ class Sprite {
 }
 
 //Class for the player
-class Player {
-    constructor() {
-        this.position = { //default position
-            x: 330,
-            y:100
-        },
-        this.width = 50,
-        this.height= 50,
+class Player extends Sprite {
+    constructor({position, imgSrc}) {
+        super( {position: position, imageSrc: imgSrc })
+        // this.position = { //default position
+        //     x: 330,
+        //     y:100
+        // },
+        // this.width = 50,
+        // this.height= 50,
         this.velocity = {
             x: 0,
             y: 1
@@ -42,12 +45,14 @@ class Player {
         this.lastKey
     }
 
-    draw() {
-        canvasContext.fillStyle = 'red'
-        canvasContext.fillRect(this.position.x, this.position.y, this.width, this.height)
-    }
+    // draw() {
+    //     canvasContext.fillStyle = 'red'
+    //     canvasContext.fillRect(this.position.x, this.position.y, this.width, this.height)
+    // }
 
     update() {
+        canvasContext.fillStyle= 'rgba(0,255,0,0.3)'
+        canvasContext.fillRect ( this.position.x, this.position.y, this.width, this.height)
         this.draw();
         this.sides.bottom = this.position.y+this.height;
 
@@ -59,12 +64,12 @@ class Player {
     }
 
     applyGravity () {
-        if(this.position.y>=80) {
-        this.position.y += this.velocity.y
-        this.velocity.y += GRAVITY
-        } else {
-            this.velocity.y=0;
-        }
+        //if(this.position.y>=30) {
+            this.position.y += this.velocity.y
+            this.velocity.y += GRAVITY
+        //} else {
+        //    this.velocity.y=0;
+        //}
     }
 
     checkForVerticalCollissions() {
