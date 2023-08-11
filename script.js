@@ -6,10 +6,14 @@ canvas.width = 64 * 16
 canvas.height = 64 * 9
 
 //---------Consts----------
-const GRAVITY = 0.9;
-const JUMP_FORCE = -15;
-const MOVEMENT_SPEED = 5;
+const GRAVITY = 0.2;
+const JUMP_FORCE = -5;
+const MOVEMENT_SPEED = 2;
 const BACKGROUND_SCALE =2.4; //how much to zoom in background
+const ANIMATION_SPEED = 8;
+const TILE_DIM = 16; //tile dimesions 16x16
+const MAP_WIDTH = 70 //map width in tiles i.e. 70 tiles wide not 70px
+const MAP_HEIGHT = 40 //Same as above
 
 //---------------------Key Controls---------------------
 const KEYS = {
@@ -26,6 +30,7 @@ const KEYS = {
 
 //map width = 70 tiles
 //map height = 40 tiles
+//tile: 16x16px
 //Creating 2-d Arrays to loop through columns and rows
 const floorCollissions2D  = []
 for(let i=0; i<floorCollissions.length; i+=70){
@@ -67,9 +72,11 @@ platformCollissions2D.forEach( (row, y) => { //looping through rows
                 position: {
                     x: x*16,
                     y: y*16
-                }
+                },
+                height: 9
             }))
         }
+        console.log('loooop');
     })
 })
 
@@ -80,10 +87,42 @@ const scaledCanvas = {
 
 const player = new Player( {
     position: {
-        x: 330, 
-        y:100
+        x: 20, 
+        y:370
     },
-    imgSrc: './img/Player/Idle.png'
+    imgSrc: './img/Player/Idle_Right.png',
+    scale: 1.5,
+    numFrames:2,
+    sprites: {
+        idleLeft: {
+            spriteSrc: './img/Player/Idle_Left.png',
+            numFrames: 2
+        },
+        idleRight: {
+            spriteSrc: './img/Player/Idle_Right.png',
+            numFrames: 2
+        }, 
+        runLeft: {
+            spriteSrc: './img/Player/Run_Left.png',
+            numFrames: 4
+        },
+        runRight: {
+            spriteSrc: './img/Player/Run_Right.png',
+            numFrames: 4
+        },
+        jumpLeft: {
+            spriteSrc: './img/Player/Jump_Left.png',
+            numFrames: 9
+        },
+        jumpRight: {
+            spriteSrc: './img/Player/Jump_Right.png',
+            numFrames: 9
+        },
+        death: {
+            spriteSrc: './img/Player/Death.png',
+            numFrames: 9
+        }
+    }
 })
 
 //DIMESIONS: 1120 x 641
@@ -97,6 +136,13 @@ const backgroundLev1 = new Sprite({
 
 console.log(platformBlocksArray);
 
+//Dynamic storage to tell how much to offset the canvas
+const translateValues = {
+    position: {
+        x:0,
+        y: scaledCanvas.height - ( MAP_HEIGHT*TILE_DIM) 
+    }
+}
 
 function animate() {
     window.requestAnimationFrame(animate)
@@ -108,7 +154,7 @@ function animate() {
     //Scaling up (zoom in)
     canvasContext.save();
     canvasContext.scale(BACKGROUND_SCALE,BACKGROUND_SCALE); ///does not affect original dimensions of the image
-    canvasContext.translate(0, -backgroundLev1.image.height + scaledCanvas.height )
+    canvasContext.translate(translateValues.position.x, translateValues.position.y )
     backgroundLev1.update();
     //Draw out the collission blocks
     collissionBlocksArray.forEach(collissionBlick => {
@@ -126,14 +172,38 @@ function animate() {
     //Player Movement
     if (KEYS.a.pressed && player.lastKey == 'a') {
         player.velocity.x = -MOVEMENT_SPEED;
-        //player2.setSprite('run');
+        player.setSprite('runLeft');
+        player.direction = 'left';
+        player.panCameraRight();
+       
     } else if (KEYS.d.pressed && player.lastKey == 'd') {
         player.velocity.x = MOVEMENT_SPEED;
-        //player2.setSprite('run');
-    } else {
+        player.setSprite('runRight');
+        player.direction = 'right';
+        player.panCameraLeft()
+
+    } else if(player.velocity.y !== 0 && player.lastKey == 'w') {
+        player.panCameraDown()
+
+        switch(player.direction) {
+            case 'left':
+                player.setSprite('jumpLeft');
+                break;
+            case 'right':
+                player.setSprite('jumpRight');
+                break;
+           }
+    } 
+    else {
         player.velocity.x=0;
-        //Default to set for every frame
-        //player2.setSprite('idle');
+       switch(player.direction) {
+        case 'left':
+            player.setSprite('idleLeft');
+            break;
+        case 'right':
+            player.setSprite('idleRight');
+            break;
+       }
     }
 
 }
@@ -145,7 +215,7 @@ window.addEventListener('keydown', (event) => {
     switch (event.key) {
         // --- MOvement
         case 'w':
-            if (player.velocity.y > -0.5 && player.velocity.y < 0.5)
+            if (player.velocity.y > -0.5 && player.velocity.y < 0.5) 
                 player.velocity.y = JUMP_FORCE
             KEYS.w.pressed = true
             break
@@ -161,17 +231,7 @@ window.addEventListener('keydown', (event) => {
             break
         // ---  Attack
         case ' ':
-            // // KEYS.Shift.pressed = true
-            // if (!player2.firing) {
-            //     player2.attack();
-            //     fireArrow.play();
-            //     player2.firing = true;
-            //     setTimeout(() => {
-            //         player2.firing = false;
-            //         FIRED = false;
-            //     }, ARROW_SHOOT_TIME)
-            // }
-            // break
+           
             break
     }
 
