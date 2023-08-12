@@ -10,7 +10,7 @@ const GRAVITY = 0.2;
 const JUMP_FORCE = -5;
 const MOVEMENT_SPEED = 2;
 const BACKGROUND_SCALE =2.4; //how much to zoom in background
-const ANIMATION_SPEED = 8;
+const ANIMATION_SPEED = 8; //smaller value = faster animation
 const TILE_DIM = 16; //tile dimesions 16x16
 const MAP_WIDTH = 70 //map width in tiles i.e. 70 tiles wide not 70px
 const MAP_HEIGHT = 40 //Same as above
@@ -42,13 +42,15 @@ for(let i=0; i<platformCollissions.length; i+=70){
     platformCollissions2D.push(platformCollissions.slice(i,i+70)) //pushing an array of length 70 (one row)
 }
 
-console.log(platformCollissions2D);
-
-///console.log(floorCollissions2D)
+const coins2D = [] 
+for(let i=0; i<coins.length; i+=70){
+    coins2D.push(coins.slice(i,i+70)) //pushing an array of length 70 (one row)
+}
 
 //These are arrays of the CollisionBlock's for ground and platform
 const collissionBlocksArray =[]; //ground
 const platformBlocksArray = []; //platform
+const coinsArray = []; //coins
 
 floorCollissions2D.forEach ( (row, y) => {
     row.forEach((item, x) => { //x==column index
@@ -79,6 +81,24 @@ platformCollissions2D.forEach( (row, y) => { //looping through rows
         console.log('loooop');
     })
 })
+
+coins2D.forEach( (row, y) => { //looping through rows
+    row.forEach((item, x) => { //for each individual specific symbol
+        if(item !== 0) {
+            coinsArray.push( new Coin ({
+                position: {
+                    x: x*16,
+                    y: y*16
+                },
+                imgSrc: './img/coin.png',
+                numFrames: 14,
+                scale: 1.5,
+                animationSpeed : 3
+            }))
+        }
+    })
+})
+
 
 const scaledCanvas = {
     width: canvas.width/BACKGROUND_SCALE,
@@ -164,6 +184,9 @@ function animate() {
     platformBlocksArray.forEach(platform => {
         platform.update();
     })
+   coinsArray.forEach(coin => {
+        coin.update();
+    })
     //Draw out the player
     player.update();
 
@@ -225,8 +248,11 @@ window.addEventListener('keydown', (event) => {
     switch (event.key) {
         // --- MOvement
         case 'w':
-            if (player.velocity.y > -0.5 && player.velocity.y < 0.5) 
+        case 'W':
+            if (player.isGrounded) {
                 player.velocity.y = JUMP_FORCE
+                player.isGrounded=false;
+            }
             KEYS.w.pressed = true
             player.lastKey = 'w'
             break

@@ -1,6 +1,6 @@
 
 class Sprite {
-    constructor({position, imageSrc, scale=1, numFrames=1}) {
+    constructor({position, imageSrc, scale=1, numFrames=1, animationSpeed = ANIMATION_SPEED}) {
         this.position = position;
         this.image=new Image();
         this.image.src = imageSrc
@@ -9,6 +9,7 @@ class Sprite {
         this.numFrames = numFrames
         this.currentFrame = 0
         this.elapsedFrames = 0
+        this.animationSpeed = animationSpeed
 
         this.image.onload = () => {
             this.loaded = true
@@ -44,7 +45,7 @@ class Sprite {
 
     animate() {
         this.elapsedFrames++
-        if(this.elapsedFrames % ANIMATION_SPEED === 0 ) { //move to next frame
+        if(this.elapsedFrames % this.animationSpeed === 0 ) { //move to next frame
             if(this.currentFrame < (this.numFrames-1)) {
                 this.currentFrame++; //move forward
             } else {
@@ -85,7 +86,16 @@ class Player extends Sprite {
             },
             width: 200,
             height: 80
+        },
+        this.hitBox = {
+            position: {
+                x: this.position.x,
+                y: this.position.y,
+            },
+            width: 14,
+            height:24.5
         }
+        this.isGrounded = false;
 
         //Creaitng new images and setting up the sprites
         for (const key in this.sprites) {
@@ -148,9 +158,12 @@ class Player extends Sprite {
         }
     }
 
-    updateCameraBox() {
+    updateBoxes() {
         this.cameraBox.position.x = this.position.x - 80
         this.cameraBox.position.y = this.position.y - 20
+
+        this.hitBox.position.x = this.position.x + 7
+        this.hitBox.position.y = this.position.y + 10
     }
 
     //overriding the Sprite Update method 
@@ -159,13 +172,19 @@ class Player extends Sprite {
         canvasContext.fillStyle= 'rgba(0,255,0,0.3)'
         canvasContext.fillRect ( this.position.x, this.position.y, this.width, this.height)
         
-        //Drawing a rectangle to visualize the camera box
-        this.updateCameraBox()
+      //Updating camerabox and hitbox with every frame
+        this.updateBoxes()
+          //Drawing a rectangle to visualize the camera box
         canvasContext.fillStyle = 'rgba(255,0,0,0.2)'
         canvasContext.fillRect( this.cameraBox.position.x, this.cameraBox.position.y, this.cameraBox.width, this.cameraBox.height);
 
+        
+
         this.sides.bottom = this.position.y+this.height;
         this.draw();
+        canvasContext.fillStyle = 'rgba(255,0,255,0.5d)'
+        canvasContext.fillRect( this.hitBox.position.x, this.hitBox.position.y, this.hitBox.width, this.hitBox.height);
+
         if(this.isAlive)
             this.animate();
       
@@ -183,9 +202,12 @@ class Player extends Sprite {
 
         //Movement
         this.position.x += this.velocity.x
+        this.updateBoxes()
         this.checkForHorizontalCollissions(); //the order is imp
         this.applyGravity();
+        this.updateBoxes()
         this.checkForVerticalCollissions()
+        this.checkForCoinCollection()
         console.log( 'x '+this.position.x + ' y ' + this.position.y)
     }
 
@@ -253,7 +275,8 @@ class Player extends Sprite {
             if ( detectCollission({ obj1: this, obj2: currentBlock}) ) {
                 if(this.velocity.y > 0) { //moving downward
                     this.velocity.y = 0; //stahp
-                    this.position.y = currentBlock.position.y - this.height -0.02 //(small buffer to make sure no further collission blocks are accidentally passed)
+                    this.isGrounded=true;
+                 this.position.y = currentBlock.position.y -this.height-0.02 //(small buffer to make sure no further collission blocks are accidentally passed)
                     break
                 }
                 if(this.velocity.y<0) { //moving upward
@@ -270,10 +293,14 @@ class Player extends Sprite {
         for(let i=0; i< platformBlocksArray.length; i++) {
 
             const currentPlatform = platformBlocksArray[i]
-            if ( platformCollission({ obj1: this, obj2: currentPlatform}) ) {
+            if ( platformCollission({ obj1: this.hitBox, obj2: currentPlatform}) ) {
                 if(this.velocity.y > 0) { //moving downward
                     this.velocity.y = 0; //stahp
-                    this.position.y = currentPlatform.position.y - this.height -0.02 //(small buffer to make sure no further collission blocks are accidentally passed)
+                    this.isGrounded=true;
+
+                    const offset = this.hitBox.position.y - this.position.y + this.hitBox.height
+
+                    this.position.y = currentPlatform.position.y -offset -0.02 //(small buffer to make sure no further collission blocks are accidentally passed)
                     break
                 }
                 // if(this.velocity.y<0) { //moving upward
@@ -304,8 +331,17 @@ class Player extends Sprite {
             }
 
         }
+    }
 
-      
+    checkForCoinCollection() {
+        for(let i=0; i< coinsArray.length; i++) {
+            const currentCoin= coinsArray[i]
+
+            if ( detectCollission({ obj1: this, obj2: currentCoin}) ) {
+               coinsArray[i].isCollected=true;
+            }
+
+        }
     }
 }
 
@@ -326,19 +362,19 @@ class CollissionBlock {
     }
 }
 
-// class Coin extends Sprite {
-//     constructor({position, imgSrc, scale=1, numFrames = 1, value=1}) {
-//         super( {position: position, imageSrc: imgSrc , scale, numFrames})
-//         this.isCollected = false
-//         this.value = value 
-//     }
+class Coin extends Sprite {
+    constructor({position, imgSrc, scale=1, numFrames = 1, value=1, animationSpeed = ANIMATION_SPEED}) {
+        super( {position: position, imageSrc: imgSrc , scale, numFrames, animationSpeed})
+        this.isCollected = false
+        this.value = value 
+    }
 
-//     update() {
-//         if(! this.isCollected) {
-//             this.draw();
-//             this.animate();
-//         }
-//     }
+    update() {
+        if(! this.isCollected) {
+            this.draw();
+            this.animate();
+        }
+    }
     
-// }
+}
 
