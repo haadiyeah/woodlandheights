@@ -168,23 +168,25 @@ class Player extends Sprite {
 
     //overriding the Sprite Update method 
     update() {
-        //Drawing a rectangle to visualize the sprite img dimensions!
+        //Image visualization
         canvasContext.fillStyle= 'rgba(0,255,0,0.3)'
         canvasContext.fillRect ( this.position.x, this.position.y, this.width, this.height)
         
       //Updating camerabox and hitbox with every frame
         this.updateBoxes()
-          //Drawing a rectangle to visualize the camera box
+        //Camera box visualization
         canvasContext.fillStyle = 'rgba(255,0,0,0.2)'
         canvasContext.fillRect( this.cameraBox.position.x, this.cameraBox.position.y, this.cameraBox.width, this.cameraBox.height);
 
-        
-
         this.sides.bottom = this.position.y+this.height;
+        //Drawing the player
         this.draw();
+
+        //Hitbox visualization
         canvasContext.fillStyle = 'rgba(255,0,255,0.5d)'
         canvasContext.fillRect( this.hitBox.position.x, this.hitBox.position.y, this.hitBox.width, this.hitBox.height);
 
+        //Animation
         if(this.isAlive)
             this.animate();
       
@@ -202,28 +204,29 @@ class Player extends Sprite {
 
         //Movement
         this.position.x += this.velocity.x
+
+         //the order of these function calls is imp - do not change
         this.updateBoxes()
-        this.checkForHorizontalCollissions(); //the order is imp
+        this.checkForHorizontalCollissions();
         this.applyGravity();
         this.updateBoxes()
         this.checkForVerticalCollissions()
+        this.checkForSlimesCollissions()
         this.checkForCoinCollection()
-        console.log( 'x '+this.position.x + ' y ' + this.position.y)
+        
+        //console.log( 'x '+this.position.x + ' y ' + this.position.y)
     }
 
     applyGravity () {
-        //if(this.position.y>=30) {
-            this.position.y += this.velocity.y
-            this.velocity.y += GRAVITY
-        //} else {
-        //    this.velocity.y=0;
-        //}
+        this.position.y += this.velocity.y
+        this.velocity.y += GRAVITY
+      
     }
 
     setSprite(sprite) {
         // in case of ded
         if (this.image === this.sprites.death.image) {
-            if (this.image === this.sprites.death.image && this.framesCurrent == this.sprites.death.framesMax - 1) {
+            if (this.image === this.sprites.death.image && this.currentFrame == this.sprites.death.numFrames - 1) {
                 this.isAlive = false;
             }
             return
@@ -345,6 +348,71 @@ class Player extends Sprite {
 
         }
     }
+
+    checkForSlimesCollissions() {
+        for(let i=0; i< slimesArray.length; i++) {
+
+            const currentSlime = slimesArray[i]
+            if ( detectCollission({ obj1: this.hitBox, obj2: currentSlime}) ) {
+                if(this.velocity.y > 0 && !this.isGrounded) { //moving downward
+                    slimesArray[i].setSprite("death") //isAlive=false will automatically be set at last frame
+                    break
+                }
+                else {
+                    slimesArray[i].setSprite("attack") 
+                    //PLAYER HEALTH SUBTRACT HERE
+                    break
+                }
+            } else if( inSlimeRange({player: this, slime: currentSlime})) {
+                if(onLeftOfSlime({player: this, slime: currentSlime})) {
+                    slimesArray[i].velocity.x = -MOVEMENT_SPEED;
+                    slimesArray[i].direction = 'left';
+                    slimesArray[i].setSprite("attackLeft") ;
+                } else  if(onRightOfSlime({player: this, slime: currentSlime})) {
+                    slimesArray[i].velocity.x = MOVEMENT_SPEED;
+                    slimesArray[i].direction = 'right';
+                    slimesArray[i].setSprite("attackRight") ;
+                }
+            } else {
+                switch(currentSlime.direction) {
+                    case 'left':
+                        slimesArray[i].setSprite("idleLeft");
+                        break;
+                        case 'right':
+                            slimesArray[i].setSprite("idleRight");
+                            break;
+                }
+                slimesArray[i].velocity.x = 0;
+                
+            }
+           
+
+        }
+
+        //console.log(platformBlocksArray)
+
+        for(let i=0; i< platformBlocksArray.length; i++) {
+
+            const currentPlatform = platformBlocksArray[i]
+            if ( platformCollission({ obj1: this.hitBox, obj2: currentPlatform}) ) {
+                if(this.velocity.y > 0) { //moving downward
+                    this.velocity.y = 0; //stahp
+                    this.isGrounded=true;
+
+                    const offset = this.hitBox.position.y - this.position.y + this.hitBox.height
+
+                    this.position.y = currentPlatform.position.y -offset -0.02 //(small buffer to make sure no further collission blocks are accidentally passed)
+                    break
+                }
+                // if(this.velocity.y<0) { //moving upward
+                //     this.velocity.y=0;
+                //     this.position.y = currentPlatform.position.y  + currentPlatform.height + 0.02
+                //     break
+                // }
+            }
+
+        }
+    }
 }
 
 class CollissionBlock {
@@ -380,3 +448,178 @@ class Coin extends Sprite {
     
 }
 
+class Enemy extends Sprite {
+    constructor({position, imgSrc, scale=1, numFrames = 1, sprites}) {
+        super( {position: position, imageSrc: imgSrc , scale, numFrames})
+        // this.position = { //default position
+        //     x: 330,
+        //     y:100
+        // },
+        // this.width = 50,
+        // this.height= 50,
+        this.velocity = {
+            x: 0,
+            y: 0
+        },
+        this.sprites=sprites,
+        this.direction = randomizeDirection(), //keep track of direction facing
+        this.isAlive = true
+
+        //Creaitng new images and setting up the sprites
+        for (const key in this.sprites) {
+            this.sprites[key].image = new Image()
+            this.sprites[key].image.src = this.sprites[key].spriteSrc
+        }
+    }
+
+    applyGravity () {
+        this.position.y += this.velocity.y
+        this.velocity.y += GRAVITY
+      
+    }
+
+    //Overriding parent func
+    update() {
+        canvasContext.fillStyle= 'rgba(0,255,0,0.3)'
+        canvasContext.fillRect ( this.position.x, this.position.y, this.width, this.height)
+        this.draw();
+        if(this.isAlive) {
+            this.animate();
+            this.position.x += this.velocity.x;
+            this.checkForHorizontalCollissions();
+            this.applyGravity();
+            this.checkForVerticalCollissions();
+            
+        }
+
+    //this.setSprite("attack");
+      
+        
+    }
+
+    setSprite(sprite) {
+        // in case of ded
+        if (this.image == this.sprites.death.image) {
+            if (this.image == this.sprites.death.image && this.currentFrame === (this.sprites.death.numFrames-1) ) {
+                this.isAlive = false;
+            }
+            return
+        }
+
+        if (this.image === this.sprites.death.image && this.currentFrame < this.sprites.death.numFrames - 1) {
+            return
+        }
+
+        //if attacking, do not change 
+        if (sprite != 'death' && (this.image === this.sprites.attackLeft.image || this.image === this.sprites.attackRight.image) && this.currentFrame < this.sprites.attackLeft.numFrames - 1) {
+            return
+        }
+
+       
+        switch (sprite) {
+            case 'idleLeft':
+                if (this.image !== this.sprites.idleLeft.image) {
+                    this.image = this.sprites.idleLeft.image
+                    this.numFrames = this.sprites.idleLeft.numFrames
+                    this.currentFrame = 0
+                }
+                break;
+            case 'idleRight':
+                if (this.image !== this.sprites.idleRight.image) {
+                    this.image = this.sprites.idleRight.image
+                    this.numFrames = this.sprites.idleRight.numFrames
+                    this.currentFrame = 0
+                }
+                break;
+            case 'runLeft':
+                if (this.image !== this.sprites.runLeft.image) {
+                    this.image = this.sprites.runLeft.image
+                    this.numFrames = this.sprites.runLeft.numFrames
+                    this.currentFrame = 0
+                }
+                break;
+            case 'runRight':
+                if (this.image !== this.sprites.runRight.image) {
+                    this.image = this.sprites.runRight.image
+                    this.numFrames = this.sprites.runRight.numFrames
+                    this.currentFrame = 0
+                }
+                break;
+            case 'death':
+                if(this.image!== this.sprites.death.image) {
+                    this.image=this.sprites.death.image
+                    this.numFrames = this.sprites.death.numFrames
+                    this.currentFrame=0
+                }
+                break;
+
+            case 'attackLeft': 
+            if(this.image!== this.sprites.attackLeft.image) {
+                this.image=this.sprites.attackLeft.image
+                this.numFrames = this.sprites.attackLeft.numFrames
+                this.currentFrame=0
+            }
+            break;
+            case 'attackRight': 
+            if(this.image!== this.sprites.attackRight.image) {
+                this.image=this.sprites.attackRight.image
+                this.numFrames = this.sprites.attackRight.numFrames
+                this.currentFrame=0
+            }
+            break;
+        }
+    }
+
+    checkForVerticalCollissions() {
+        for(let i=0; i< collissionBlocksArray.length; i++) {
+            const currentBlock = collissionBlocksArray[i]
+            if ( detectCollission({ obj1: this, obj2: currentBlock}) ) {
+                if(this.velocity.y > 0) { //moving downward
+                    this.velocity.y = 0; //stahp
+                 this.position.y = currentBlock.position.y -this.height-0.02 //(small buffer to make sure no further collission blocks are accidentally passed)
+                    break
+                }
+            }
+
+        }
+
+        //console.log(platformBlocksArray)
+
+        for(let i=0; i< platformBlocksArray.length; i++) {
+
+            const currentPlatform = platformBlocksArray[i]
+            if ( platformCollission({ obj1: this, obj2: currentPlatform}) ) {
+                if(this.velocity.y > 0) { //moving downward
+                    this.velocity.y = 0; //stahp
+
+                    const offset = this.position.y - this.position.y + this.height - 3
+
+                    this.position.y = currentPlatform.position.y -offset -0.02 //(small buffer to make sure no further collission blocks are accidentally passed)
+                    break
+                }
+            }
+
+        }
+    }
+
+    checkForHorizontalCollissions() {
+        for(let i=0; i< collissionBlocksArray.length; i++) {
+            const currentBlock = collissionBlocksArray[i]
+
+            if ( detectCollission({ obj1: this, obj2: currentBlock}) ) {
+                if(this.velocity.x > 0) { //moving to the right
+                    this.velocity.x = 0; //stahp
+                    this.position.x = currentBlock.position.x - this.width -0.02 //(buffer to make sure player cannot move past any collission blocks to the right)
+                    break
+                }
+                if(this.velocity.x<0) { //moving left
+                    this.velocity.x=0;
+                    this.position.x = currentBlock.position.x + currentBlock.width + 0.02
+                    break
+                }
+            }
+
+        }
+    }
+    
+}

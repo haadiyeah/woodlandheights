@@ -14,6 +14,7 @@ const ANIMATION_SPEED = 8; //smaller value = faster animation
 const TILE_DIM = 16; //tile dimesions 16x16
 const MAP_WIDTH = 70 //map width in tiles i.e. 70 tiles wide not 70px
 const MAP_HEIGHT = 40 //Same as above
+const ENEMY_VERTICAL_RANGE = 10; //How far off (vertically) enemies can spot you
 
 //---------------------Key Controls---------------------
 const KEYS = {
@@ -49,10 +50,16 @@ for(let i=0; i<coins.length; i+=70){
     coins2D.push(coins.slice(i,i+70)) //pushing an array of length 70 (one row)
 }
 
+const slimes2D = []
+for(let i=0; i<slimes.length; i+=70) {
+    slimes2D.push(slimes.slice(i,i+70))
+}
+
 //These are arrays of the CollisionBlock's for ground and platform
 const collissionBlocksArray =[]; //ground
 const platformBlocksArray = []; //platform
 const coinsArray = []; //coins
+const slimesArray = []
 
 floorCollissions2D.forEach ( (row, y) => {
     row.forEach((item, x) => { //x==column index
@@ -97,6 +104,14 @@ coins2D.forEach( (row, y) => { //looping through rows
                 scale: 1.5,
                 animationSpeed : 3
             }))
+        }
+    })
+})
+
+slimes2D.forEach ( (row, y) => { //looping through rows
+    row.forEach((item, x) => { //for each individual specific symbol
+        if(item !== 0) {
+            slimesArray.push( createSlime(x*16, y*16) )
         }
     })
 })
@@ -188,6 +203,9 @@ function animate() {
     })
    coinsArray.forEach(coin => {
         coin.update();
+    })
+    slimesArray.forEach(slime => {
+        slime.update();
     })
     //Draw out the player
     player.update();
