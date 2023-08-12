@@ -95,7 +95,8 @@ class Player extends Sprite {
             width: 14,
             height:24.5
         }
-        this.isGrounded = false;
+        this.isGrounded = false,
+        this.coinsCollected = 0;
 
         //Creaitng new images and setting up the sprites
         for (const key in this.sprites) {
@@ -169,22 +170,22 @@ class Player extends Sprite {
     //overriding the Sprite Update method 
     update() {
         //Image visualization
-        canvasContext.fillStyle= 'rgba(0,255,0,0.3)'
-        canvasContext.fillRect ( this.position.x, this.position.y, this.width, this.height)
+        // canvasContext.fillStyle= 'rgba(0,255,0,0.3)'
+        // canvasContext.fillRect ( this.position.x, this.position.y, this.width, this.height)
         
       //Updating camerabox and hitbox with every frame
         this.updateBoxes()
-        //Camera box visualization
-        canvasContext.fillStyle = 'rgba(255,0,0,0.2)'
-        canvasContext.fillRect( this.cameraBox.position.x, this.cameraBox.position.y, this.cameraBox.width, this.cameraBox.height);
+        // //Camera box visualization
+        // canvasContext.fillStyle = 'rgba(255,0,0,0.2)'
+        // canvasContext.fillRect( this.cameraBox.position.x, this.cameraBox.position.y, this.cameraBox.width, this.cameraBox.height);
 
         this.sides.bottom = this.position.y+this.height;
         //Drawing the player
         this.draw();
 
-        //Hitbox visualization
-        canvasContext.fillStyle = 'rgba(255,0,255,0.5d)'
-        canvasContext.fillRect( this.hitBox.position.x, this.hitBox.position.y, this.hitBox.width, this.hitBox.height);
+        // //Hitbox visualization
+        // canvasContext.fillStyle = 'rgba(255,0,255,0.5d)'
+        // canvasContext.fillRect( this.hitBox.position.x, this.hitBox.position.y, this.hitBox.width, this.hitBox.height);
 
         //Animation
         if(this.isAlive)
@@ -204,6 +205,10 @@ class Player extends Sprite {
 
         //Movement
         this.position.x += this.velocity.x
+
+        if(this.velocity.y > 0) {
+            this.isGrounded=false;
+        }
 
          //the order of these function calls is imp - do not change
         this.updateBoxes()
@@ -344,6 +349,12 @@ class Player extends Sprite {
                coinsArray[i].isCollected=true;
                getCoin.currentTime=0
                getCoin.play()
+               this.coinsCollected ++;
+
+               gsap.to('#coinBar', {
+                   width: ((this.coinsCollected/numCoins)*100) + '%'
+               })
+
             }
 
         }
@@ -354,21 +365,31 @@ class Player extends Sprite {
 
             const currentSlime = slimesArray[i]
             if ( detectCollission({ obj1: this.hitBox, obj2: currentSlime}) ) {
-                if(this.velocity.y > 0 && !this.isGrounded) { //moving downward
+                if(this.velocity.y > 0 && !this.isGrounded && currentSlime.isAlive && (this.position.y + this.height < currentSlime.position.y+currentSlime.height-5)) { //moving downward
                     slimesArray[i].setSprite("death") //isAlive=false will automatically be set at last frame
+                    slimesArray[i].velocity.x=0;
+                    splat.play()
                     break
                 }
                 else {
-                    slimesArray[i].setSprite("attack") 
+                    switch(currentSlime.direction) {
+                        case 'left':
+                            slimesArray[i].setSprite("attackLeft");
+                            break;
+                            case 'right':
+                                slimesArray[i].setSprite("attackRight");
+                                break;
+                    }
+
                     //PLAYER HEALTH SUBTRACT HERE
                     break
                 }
-            } else if( inSlimeRange({player: this, slime: currentSlime})) {
+            } else if( inSlimeRange({player: this, slime: currentSlime}) && currentSlime.image != currentSlime.sprites.death.image) {
                 if(onLeftOfSlime({player: this, slime: currentSlime})) {
                     slimesArray[i].velocity.x = -MOVEMENT_SPEED;
                     slimesArray[i].direction = 'left';
                     slimesArray[i].setSprite("attackLeft") ;
-                } else  if(onRightOfSlime({player: this, slime: currentSlime})) {
+                } else  if(onRightOfSlime({player: this, slime: currentSlime}) && currentSlime.image != currentSlime.sprites.death.image) {
                     slimesArray[i].velocity.x = MOVEMENT_SPEED;
                     slimesArray[i].direction = 'right';
                     slimesArray[i].setSprite("attackRight") ;
@@ -423,8 +444,8 @@ class CollissionBlock {
     }
 
     draw() {
-        canvasContext.fillStyle= 'rgba(255,0,0,0.5)';
-        canvasContext.fillRect(this.position.x, this.position.y, this.width,this.height);
+        // canvasContext.fillStyle= 'rgba(255,0,0,0.5)';
+        // canvasContext.fillRect(this.position.x, this.position.y, this.width,this.height);
     }
 
     update() {
@@ -480,8 +501,9 @@ class Enemy extends Sprite {
 
     //Overriding parent func
     update() {
-        canvasContext.fillStyle= 'rgba(0,255,0,0.3)'
-        canvasContext.fillRect ( this.position.x, this.position.y, this.width, this.height)
+        //visualizing image dimensions
+        // canvasContext.fillStyle= 'rgba(0,255,0,0.3)'
+        // canvasContext.fillRect ( this.position.x, this.position.y, this.width, this.height)
         this.draw();
         if(this.isAlive) {
             this.animate();

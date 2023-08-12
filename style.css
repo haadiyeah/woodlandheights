@@ -1,3 +1,133 @@
-body {
-    background-color: midnightblue;
+* {
+    box-sizing: border-box;
+    font-family: 'Syne Mono', monospace;
 }
+
+h1 {
+    color: whitesmoke;
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    background-color: #3d5671;
+}
+
+#outermost {
+    display: inline-block;
+}
+
+#coinicon {
+    width: 50px;
+    height: auto;
+    padding-right: 100;
+}
+
+.textBox {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    text-align: center;
+    top:0;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    justify-content: center;
+}
+
+#mainDiv {
+    position: relative;
+    display: inline-block;
+}
+
+#topBar {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 20px;
+}
+
+#scoreInfo {
+    position: absolute;
+    color: white;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    top:0;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    font-size: 40px;
+}
+
+.coinBar {
+    height: 30px;
+    width: 100%;
+    position: absolute;
+    top:0;
+    right: 0;
+    bottom: 0;
+    border-radius: 10px;
+    
+}
+
+.coinBarContainer {
+    position: relative;
+    align-items: flex-end;
+    width: 55%;
+    border: 1px solid white;
+    border-radius: 10px;
+    margin: 10px;
+}
+
+.coinBarBg {
+    background-color:darkgray;
+    height: 30px;
+    width: 100%;
+    background-image: url("./img/healthbar_bg.png");
+    border-radius: 10px;
+}
+
+#coinBar {
+    background-color: #f5df54;
+    left:0;
+    width: 0%;
+}
+
+#sidediv {
+    height: 100%;
+    top:0;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    padding-left: 5px;
+    margin-left: 5px;
+}
+
+#game {
+    display: flex;
+    padding-top: 50px;
+    
+}
+
+
+
+  #refreshBtn {
+    background-color: #68977c;
+    border-radius: 40px;
+    transition: transform 0.7s ease-in-out;
+  }
+
+  #refreshBtn:hover {
+    transform: rotate(360deg);
+    background-color: #8ea799;
+
+  }
+
+
+  #refreshBtnImg {
+    width: 60px;
+    height: 60px;
+  }
+  

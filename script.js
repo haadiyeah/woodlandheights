@@ -30,7 +30,7 @@ const KEYS = {
 }
 
 var getCoin = new Audio('./audio/oot_rupee_get.mp3')
-
+var splat = new Audio('./audio/splat.mp3')
 //map width = 70 tiles
 //map height = 40 tiles
 //tile: 16x16px
@@ -60,6 +60,7 @@ const collissionBlocksArray =[]; //ground
 const platformBlocksArray = []; //platform
 const coinsArray = []; //coins
 const slimesArray = []
+let numCoins=0; //counting no. of coins
 
 floorCollissions2D.forEach ( (row, y) => {
     row.forEach((item, x) => { //x==column index
@@ -91,6 +92,7 @@ platformCollissions2D.forEach( (row, y) => { //looping through rows
     })
 })
 
+
 coins2D.forEach( (row, y) => { //looping through rows
     row.forEach((item, x) => { //for each individual specific symbol
         if(item !== 0) {
@@ -104,6 +106,8 @@ coins2D.forEach( (row, y) => { //looping through rows
                 scale: 1.5,
                 animationSpeed : 3
             }))
+
+            numCoins++;
         }
     })
 })
@@ -121,6 +125,16 @@ const scaledCanvas = {
     width: canvas.width/BACKGROUND_SCALE,
     height: canvas.height/BACKGROUND_SCALE
 }
+
+const victorySheet = new Sprite( {
+    position: {
+        x: 50,
+        y: 50
+    },
+    imgSrc: './img/Victory.png',
+    scale: 5,
+    numFrames: 13
+})
 
 const player = new Player( {
     position: {
@@ -188,6 +202,7 @@ function animate() {
     canvasContext.fillStyle = 'white'
     canvasContext.fillRect(0, 0, canvas.width, canvas.height);
 
+  
     //Scaling up (zoom in)
     canvasContext.save();
     canvasContext.scale(BACKGROUND_SCALE,BACKGROUND_SCALE); ///does not affect original dimensions of the image
@@ -211,7 +226,14 @@ function animate() {
     player.update();
 
     canvasContext.restore();
-    
+    if(player.coinsCollected === numCoins) {
+        // canvasContext.fillStyle = 'rgba(0,0,0,0.6)'
+        // canvasContext.fillRect(0, 0, canvas.width, canvas.height);
+
+        // victorySheet.draw()
+        // victorySheet.update();
+    }
+
     if(player.velocity.y < 0) { //moving up
         player.panCameraDown();
     } else if(player.velocity.y > 0) { //moving down

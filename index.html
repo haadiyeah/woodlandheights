@@ -1,17 +1,57 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <link rel="stylesheet" href="style.css">
-</head>
-<body>
-    <canvas></canvas>
+    <link rel="icon" type="image/png" href="./img/favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Syne+Mono&display=swap" rel="stylesheet">
 
-    <script src="./js/utils.js" ></script>
-    <script src="./js/classes.js" ></script>
-    <script src="./js/data/map1.js" ></script>
+</head>
+
+<body>
+
+    <div id="outermost">
+        <div class="textBox">
+            <h1>Woodland Heights</h1>
+        </div>
+       
+        <div id="topBar">
+            <!--Coin collection bar -->
+            <img src="./img/coin_icon.png" alt="coinicon" id="coinicon">
+            <div class="coinBarContainer">
+                <div id="coinBar" class="coinBar"></div>
+                <div class="coinBarBg"></div>
+            </div>
+
+        </div> 
+        <br>
+        <br>
+        <div id="game">
+            <div id="mainDiv">
+                <div id="scoreInfo"></div>
+                <canvas id="canvas"></canvas>
+            </div>
+            <div id="sidediv">
+                <!--If button, goes here-->
+            </div>
+        </div>
+        <div class="textBox">
+            <p>Find the "Goal", stomp on slimes, and collect all the coins to keep adventuring... <br> </p>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"
+        integrity="sha512-H6cPm97FAsgIKmlBA4s774vqoN24V5gSQL4yBTDOY2su2DeXZVhQPxFK4P6GPdnZqM9fg1G3cMv5wD7e6cFLZQ=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="./js/utils.js"></script>
+    <script src="./js/classes.js"></script>
+    <script src="./js/data/map1.js"></script>
     <script src="script.js" defer></script>
 </body>
-</html> 
+
+</html>
