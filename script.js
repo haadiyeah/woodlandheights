@@ -28,6 +28,8 @@ const KEYS = {
     }
 }
 
+var getCoin = new Audio('./audio/oot_rupee_get.mp3')
+
 //map width = 70 tiles
 //map height = 40 tiles
 //tile: 16x16px

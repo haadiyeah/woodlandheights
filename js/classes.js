@@ -337,8 +337,10 @@ class Player extends Sprite {
         for(let i=0; i< coinsArray.length; i++) {
             const currentCoin= coinsArray[i]
 
-            if ( detectCollission({ obj1: this, obj2: currentCoin}) ) {
+            if ( detectCollission({ obj1: this.hitBox, obj2: currentCoin}) && currentCoin.isCollected == false ) {
                coinsArray[i].isCollected=true;
+               getCoin.currentTime=0
+               getCoin.play()
             }
 
         }
