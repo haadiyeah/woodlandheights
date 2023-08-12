@@ -128,31 +128,32 @@ class Player extends Sprite {
     //When moving up
     panCameraDown() {
         //if reached top of the map
-        if(this.cameraBox.position.y + this.velocity.y <= 0) {
+        if((this.cameraBox.position.y + this.velocity.y) <= 0) {
             return;
         }
 
-        if(this.cameraBox.position.y <= Math.abs(translateValues.position.y)) {
+        while(this.cameraBox.position.y <= Math.abs(translateValues.position.y)) {
             translateValues.position.y -= this.velocity.y
         }
     }
 
     //when moving down
     panCameraUp() {
-        if(this.cameraBox.position.y + this.cameraBox.height + this.velocity.y >= MAP_HEIGHT*TILE_DIM) {
+        if( (this.cameraBox.position.y + this.cameraBox.height + this.velocity.y) >= MAP_HEIGHT*TILE_DIM) {
             return;
         }
 
-        if(this.cameraBox.position.y + this.cameraBox.height >= Math.abs(translateValues.position.y) + scaledCanvas.height) {
+        while((this.cameraBox.position.y + this.cameraBox.height) >= (Math.abs(translateValues.position.y) + scaledCanvas.height)) {
             translateValues.position.y -= this.velocity.y
         }
     }
 
     updateCameraBox() {
         this.cameraBox.position.x = this.position.x - 80
-        this.cameraBox.position.y = this.position.y
+        this.cameraBox.position.y = this.position.y - 20
     }
 
+    //overriding the Sprite Update method 
     update() {
         //Drawing a rectangle to visualize the sprite img dimensions!
         canvasContext.fillStyle= 'rgba(0,255,0,0.3)'
@@ -309,9 +310,9 @@ class Player extends Sprite {
 }
 
 class CollissionBlock {
-    constructor({position, height=16}) {
+    constructor({position, height=TILE_DIM}) {
         this.position = position;
-        this.width= 16; //tile size is 16px x 16px
+        this.width= TILE_DIM; //default,tile size is 16px x 16px
         this.height=height
     }
 
@@ -325,4 +326,19 @@ class CollissionBlock {
     }
 }
 
+// class Coin extends Sprite {
+//     constructor({position, imgSrc, scale=1, numFrames = 1, value=1}) {
+//         super( {position: position, imageSrc: imgSrc , scale, numFrames})
+//         this.isCollected = false
+//         this.value = value 
+//     }
+
+//     update() {
+//         if(! this.isCollected) {
+//             this.draw();
+//             this.animate();
+//         }
+//     }
+    
+// }
 
