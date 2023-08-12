@@ -6,8 +6,8 @@ canvas.width = 64 * 16
 canvas.height = 64 * 9
 
 //---------Consts----------
-const GRAVITY = 0.3;
-const JUMP_FORCE = -10;
+const GRAVITY = 0.2;
+const JUMP_FORCE = -5;
 const MOVEMENT_SPEED = 2;
 const BACKGROUND_SCALE =2.4; //how much to zoom in background
 const ANIMATION_SPEED = 8;
@@ -67,7 +67,7 @@ floorCollissions2D.forEach ( (row, y) => {
 
 platformCollissions2D.forEach( (row, y) => { //looping through rows
     row.forEach((item, x) => { //for each individual specific symbol
-        if(item != 0) {
+        if(item !== 0) {
             platformBlocksArray.push( new CollissionBlock ({
                 position: {
                     x: x*16,
@@ -168,27 +168,33 @@ function animate() {
     player.update();
 
     canvasContext.restore();
+    
+    if(player.velocity.y < 0) { //moving up
+        player.panCameraDown();
+    } else if(player.velocity.y > 0) { //moving down
+        player.panCameraUp()
+    }
+
+    if(player.velocity.x < 0) { //moving left
+        player.panCameraRight();
+    } else if(player.velocity.x > 0) { //moving right
+        player.panCameraLeft();
+    }
+
 
     //Player Movement
-
-    //If needed, pan camera up/down (need to place it outside conditionals because it can happen while moving in any direction)
-    player.panCameraDown();
-    player.panCameraUp();
-
     if (KEYS.a.pressed && player.lastKey == 'a') {
         player.velocity.x = -MOVEMENT_SPEED;
         player.setSprite('runLeft');
         player.direction = 'left';
-        player.panCameraRight();
        
     } else if (KEYS.d.pressed && player.lastKey == 'd') {
         player.velocity.x = MOVEMENT_SPEED;
         player.setSprite('runRight');
         player.direction = 'right';
-        player.panCameraLeft()
 
-    } else if(player.velocity.y < 0 && player.lastKey == 'w') {
-
+    } else if(player.velocity.y !== 0 && player.lastKey == 'w') {
+       
         switch(player.direction) {
             case 'left':
                 player.setSprite('jumpLeft');
@@ -197,7 +203,7 @@ function animate() {
                 player.setSprite('jumpRight');
                 break;
            }
-    }
+    } 
     else {
         player.velocity.x=0;
        switch(player.direction) {
@@ -219,7 +225,7 @@ window.addEventListener('keydown', (event) => {
     switch (event.key) {
         // --- MOvement
         case 'w':
-            if (player.velocity.y ===0 ) 
+            if (player.velocity.y > -0.5 && player.velocity.y < 0.5) 
                 player.velocity.y = JUMP_FORCE
             KEYS.w.pressed = true
             player.lastKey = 'w'

@@ -108,7 +108,7 @@ class Player extends Sprite {
             return
         }
 
-        if(cameraRight >= ( scaledCanvas.width + Math.abs(translateValues.position.x ))) {
+        while(cameraRight >= ( scaledCanvas.width + Math.abs(translateValues.position.x ))) {
             translateValues.position.x -= this.velocity.x 
         }
     }
@@ -120,7 +120,7 @@ class Player extends Sprite {
             return;
         }
 
-        if(this.cameraBox.position.x <= Math.abs(translateValues.position.x)) {
+        while(this.cameraBox.position.x <= Math.abs(translateValues.position.x)) {
         translateValues.position.x -= this.velocity.x ; //velocity will be negative so it will be aadded
         }
     }
