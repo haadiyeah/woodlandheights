@@ -1,64 +1,3 @@
-var HURTING = false;
-
-class Sprite {
-    constructor({position, imageSrc, scale=1, numFrames=1, animationSpeed = ANIMATION_SPEED}) {
-        this.position = position;
-        this.image=new Image();
-        this.image.src = imageSrc
-        this.loaded=false
-        this.scale=scale
-        this.numFrames = numFrames
-        this.currentFrame = 0
-        this.elapsedFrames = 0
-        this.animationSpeed = animationSpeed
-
-        this.image.onload = () => {
-            this.loaded = true
-            this.width= ( this.image.width/this.numFrames ) * this.scale
-            this.height = (this.image.height ) * this.scale
-        }
-       
-    }
-
-    draw() {
-        if (!this.loaded)
-            return;
-        else {
-            canvasContext.drawImage(
-                this.image,
-                this.currentFrame * (this.image.width / this.numFrames), //x crop mark
-                0, //y crop mark
-                this.image.width / this.numFrames, //width of area to crop
-                this.image.height, //height of crop area
-                this.position.x,
-                this.position.y,
-                this.width ,
-                this.height 
-            )
-        }
-    }
-
-    update() {
-        this.draw();
-        this.animate();
-        
-    }
-
-    animate() {
-        this.elapsedFrames++
-        if(this.elapsedFrames % this.animationSpeed === 0 ) { //move to next frame
-            if(this.currentFrame < (this.numFrames-1)) {
-                this.currentFrame++; //move forward
-            } else {
-                this.currentFrame = 0; //loop back to first frame
-            }
-        }
-    }
-}
-
-var flag = true;
-var CANHURT=true;
-
 //Class for the player
 class Player extends Sprite {
     constructor({position, imgSrc, scale=1, numFrames = 1, sprites}) {
@@ -100,13 +39,27 @@ class Player extends Sprite {
             height:24.5
         }
         this.isGrounded = false,
-        this.coinsCollected = 0;
-
+        this.coinsCollected = 0,
+        this.hearts = [] ,
+        this.life = 3.00,
+        this.hurting = false //Acts as a buffer so enemy can't hit on multiple subsequent frames
+    
         //Creaitng new images and setting up the sprites
         for (const key in this.sprites) {
             this.sprites[key].image = new Image()
             this.sprites[key].image.src = this.sprites[key].spriteSrc
         }
+
+        //Setting up the hearts
+        for(let i=0; i<3; i++) {
+            this.hearts[i] =  new Heart({
+                position: {
+                    x: canvas.width - 50 - i*45,
+                    y: 20
+                }
+            })
+        }
+
     }
 
     // draw() {
@@ -214,9 +167,19 @@ class Player extends Sprite {
             this.isGrounded=false;
         }
 
+        this.life=0;
+
+        this.hearts.forEach(heart => {
+            this.life+= heart.filled;
+        })
+
+        if(this.life === 0 || this.position.y > 560 ) {
+            this.setSprite('death');
+        }
+
          //the order of these function calls is imp - do not change
         this.updateBoxes()
-        this.checkForHorizontalCollissions();
+        checkForHorizontalCollissions(this.hitBox);
         this.applyGravity();
         this.updateBoxes()
         this.checkForVerticalCollissions()
@@ -234,12 +197,18 @@ class Player extends Sprite {
 
     setSprite(sprite) {
         // in case of ded
-        if (this.image === this.sprites.death.image) {
-            if (this.image === this.sprites.death.image && this.currentFrame == this.sprites.death.numFrames - 1) {
+        if (this.image == this.sprites.death.image) {
+            if (this.image == this.sprites.death.image && this.currentFrame === (this.sprites.death.numFrames-1) ) {
                 this.isAlive = false;
             }
             return
         }
+
+        //If in the middle of death animation
+        if (this.image === this.sprites.death.image && this.currentFrame < this.sprites.death.numFrames - 1) {
+            return
+        }
+
 
         switch (sprite) {
             case 'idleLeft':
@@ -315,31 +284,7 @@ class Player extends Sprite {
                     this.position.y = currentPlatform.position.y -offset -0.02 //(small buffer to make sure no further collission blocks are accidentally passed)
                     break
                 }
-                // if(this.velocity.y<0) { //moving upward
-                //     this.velocity.y=0;
-                //     this.position.y = currentPlatform.position.y  + currentPlatform.height + 0.02
-                //     break
-                // }
-            }
-
-        }
-    }
-
-    checkForHorizontalCollissions() {
-        for(let i=0; i< collissionBlocksArray.length; i++) {
-            const currentBlock = collissionBlocksArray[i]
-
-            if ( detectCollission({ obj1: this, obj2: currentBlock}) ) {
-                if(this.velocity.x > 0) { //moving to the right
-                    this.velocity.x = 0; //stahp
-                    this.position.x = currentBlock.position.x - this.width -0.02 //(buffer to make sure player cannot move past any collission blocks to the right)
-                    break
-                }
-                if(this.velocity.x<0) { //moving upward
-                    this.velocity.x=0;
-                    this.position.x = currentBlock.position.x + currentBlock.width + 0.02
-                    break
-                }
+              //No case for moving upward so the object can move directly through the platforms
             }
 
         }
@@ -366,19 +311,22 @@ class Player extends Sprite {
 
     checkForSlimesCollissions() {
         for(let i=0; i< slimesArray.length; i++) {
-
             const currentSlime = slimesArray[i]
+
+            //Player and slime are touching
             if ( detectCollission({ obj1: this.hitBox, obj2: currentSlime}) ) {
+                
+                //Player is hitting slime from the top - slime dies
                 if( this.velocity.y > 0 && !this.isGrounded && currentSlime.isAlive && (this.position.y + this.height < currentSlime.position.y+currentSlime.height-10)) { //moving downward
                     slimesArray[i].setSprite("death") //isAlive=false will automatically be set at last frame
                     slimesArray[i].velocity.x=0;
+                    
                     splat.currentTime=0
                     splat.play()
-                    CANHURT = false
-                   
                 }
-                else   {
+                else  { //Player is hitting slime from the right/left
                     console.log("this code called")
+                    
                     switch(currentSlime.direction) {
                         case 'left':
                             slimesArray[i].setSprite("attackLeft");
@@ -388,13 +336,13 @@ class Player extends Sprite {
                                 break;
                     }
 
-                    if (!HURTING) {
+                    if (!this.hurting && slimesArray[i].image != slimesArray[i].sprites.death.image ) {
                         for (let i = 2; i >= 0; i--) {
-                            if (hearts[i].filled !== 0) {
-                                hearts[i].hurt();
-                                HURTING = true;
+                            if (this.hearts[i].filled !== 0) {
+                                this.hearts[i].hurt();
+                                this.hurting = true;
                                 setTimeout(() => {
-                                    HURTING = false;
+                                    this.hurting = false;
                                 }, 3000)
                                 break;
                             }
@@ -452,243 +400,3 @@ class Player extends Sprite {
         }
     }
 }
-
-class CollissionBlock {
-    constructor({position, height=TILE_DIM}) {
-        this.position = position;
-        this.width= TILE_DIM; //default,tile size is 16px x 16px
-        this.height=height
-    }
-
-    draw() {
-        // canvasContext.fillStyle= 'rgba(255,0,0,0.5)';
-        // canvasContext.fillRect(this.position.x, this.position.y, this.width,this.height);
-    }
-
-    update() {
-        this.draw();
-    }
-}
-
-class Coin extends Sprite {
-    constructor({position, imgSrc, scale=1, numFrames = 1, value=1, animationSpeed = ANIMATION_SPEED}) {
-        super( {position: position, imageSrc: imgSrc , scale, numFrames, animationSpeed})
-        this.isCollected = false
-        this.value = value 
-    }
-
-    update() {
-        if(! this.isCollected) {
-            this.draw();
-            this.animate();
-        }
-    }
-    
-}
-
-class Enemy extends Sprite {
-    constructor({position, imgSrc, scale=1, numFrames = 1, sprites}) {
-        super( {position: position, imageSrc: imgSrc , scale, numFrames})
-        // this.position = { //default position
-        //     x: 330,
-        //     y:100
-        // },
-        // this.width = 50,
-        // this.height= 50,
-        this.velocity = {
-            x: 0,
-            y: 0
-        },
-        this.sprites=sprites,
-        this.direction = randomizeDirection(), //keep track of direction facing
-        this.isAlive = true
-
-        //Creaitng new images and setting up the sprites
-        for (const key in this.sprites) {
-            this.sprites[key].image = new Image()
-            this.sprites[key].image.src = this.sprites[key].spriteSrc
-        }
-    }
-
-    applyGravity () {
-        this.position.y += this.velocity.y
-        this.velocity.y += GRAVITY
-      
-    }
-
-    //Overriding parent func
-    update() {
-        //visualizing image dimensions
-        // canvasContext.fillStyle= 'rgba(0,255,0,0.3)'
-        // canvasContext.fillRect ( this.position.x, this.position.y, this.width, this.height)
-        this.draw();
-        if(this.isAlive) {
-            this.animate();
-            this.position.x += this.velocity.x;
-            this.checkForHorizontalCollissions();
-            this.applyGravity();
-            this.checkForVerticalCollissions();
-            
-        }
-
-    //this.setSprite("attack");
-      
-        
-    }
-
-    setSprite(sprite) {
-        // in case of ded
-        if (this.image == this.sprites.death.image) {
-            if (this.image == this.sprites.death.image && this.currentFrame === (this.sprites.death.numFrames-1) ) {
-                this.isAlive = false;
-            }
-            return
-        }
-
-        if (this.image === this.sprites.death.image && this.currentFrame < this.sprites.death.numFrames - 1) {
-            return
-        }
-
-        //if attacking, do not change 
-        if (sprite != 'death' && (this.image === this.sprites.attackLeft.image || this.image === this.sprites.attackRight.image) && this.currentFrame < this.sprites.attackLeft.numFrames - 1) {
-            return
-        }
-
-       
-        switch (sprite) {
-            case 'idleLeft':
-                if (this.image !== this.sprites.idleLeft.image) {
-                    this.image = this.sprites.idleLeft.image
-                    this.numFrames = this.sprites.idleLeft.numFrames
-                    this.currentFrame = 0
-                }
-                break;
-            case 'idleRight':
-                if (this.image !== this.sprites.idleRight.image) {
-                    this.image = this.sprites.idleRight.image
-                    this.numFrames = this.sprites.idleRight.numFrames
-                    this.currentFrame = 0
-                }
-                break;
-            case 'runLeft':
-                if (this.image !== this.sprites.runLeft.image) {
-                    this.image = this.sprites.runLeft.image
-                    this.numFrames = this.sprites.runLeft.numFrames
-                    this.currentFrame = 0
-                }
-                break;
-            case 'runRight':
-                if (this.image !== this.sprites.runRight.image) {
-                    this.image = this.sprites.runRight.image
-                    this.numFrames = this.sprites.runRight.numFrames
-                    this.currentFrame = 0
-                }
-                break;
-            case 'death':
-                if(this.image!== this.sprites.death.image) {
-                    this.image=this.sprites.death.image
-                    this.numFrames = this.sprites.death.numFrames
-                    this.currentFrame=0
-                }
-                break;
-
-            case 'attackLeft': 
-            if(this.image!== this.sprites.attackLeft.image) {
-                this.image=this.sprites.attackLeft.image
-                this.numFrames = this.sprites.attackLeft.numFrames
-                this.currentFrame=0
-            }
-            break;
-            case 'attackRight': 
-            if(this.image!== this.sprites.attackRight.image) {
-                this.image=this.sprites.attackRight.image
-                this.numFrames = this.sprites.attackRight.numFrames
-                this.currentFrame=0
-            }
-            break;
-        }
-    }
-
-    checkForVerticalCollissions() {
-        for(let i=0; i< collissionBlocksArray.length; i++) {
-            const currentBlock = collissionBlocksArray[i]
-            if ( detectCollission({ obj1: this, obj2: currentBlock}) ) {
-                if(this.velocity.y > 0) { //moving downward
-                    this.velocity.y = 0; //stahp
-                 this.position.y = currentBlock.position.y -this.height-0.02 //(small buffer to make sure no further collission blocks are accidentally passed)
-                    break
-                }
-            }
-
-        }
-
-        //console.log(platformBlocksArray)
-
-        for(let i=0; i< platformBlocksArray.length; i++) {
-
-            const currentPlatform = platformBlocksArray[i]
-            if ( platformCollission({ obj1: this, obj2: currentPlatform}) ) {
-                if(this.velocity.y > 0) { //moving downward
-                    this.velocity.y = 0; //stahp
-
-                    const offset = this.position.y - this.position.y + this.height - 3
-
-                    this.position.y = currentPlatform.position.y -offset -0.02 //(small buffer to make sure no further collission blocks are accidentally passed)
-                    break
-                }
-            }
-
-        }
-    }
-
-    checkForHorizontalCollissions() {
-        for(let i=0; i< collissionBlocksArray.length; i++) {
-            const currentBlock = collissionBlocksArray[i]
-
-            if ( detectCollission({ obj1: this, obj2: currentBlock}) ) {
-                if(this.velocity.x > 0) { //moving to the right
-                    this.velocity.x = 0; //stahp
-                    this.position.x = currentBlock.position.x - this.width -0.02 //(buffer to make sure player cannot move past any collission blocks to the right)
-                    break
-                }
-                if(this.velocity.x<0) { //moving left
-                    this.velocity.x=0;
-                    this.position.x = currentBlock.position.x + currentBlock.width + 0.02
-                    break
-                }
-            }
-
-        }
-    }
-}
-
-
-
-class Heart extends Sprite {
-    constructor({position, imgSrc = '../img/heart/heart_sheet.png', scale=2.5, numFrames = 5}) {
-        super( {position: position, imageSrc: imgSrc , scale, numFrames})
-        this.filled = 1.0
-    }
-
-
-    hurt() {
-        if(this.filled === 0) { //empty
-            this.image.src = '../img/heart/border.png'
-            this.currentFrame = 0
-            this.numFrames=1
-        } else {
-            this.currentFrame++
-            this.filled -= 0.25
-       }
-    }
-
-    heal() {
-        if(this.filled === 1 ) {
-            return;
-        } else {
-            this.currentFrame --;
-            this.filled += 0.25;
-        }
-    }
-}
-

@@ -62,7 +62,7 @@ function createSlime(xpos, ypos) {
     const slime = new Enemy( {
         position: {
             x: xpos,
-            y: ypos - 17
+            y: ypos - 11
         },
         imgSrc: '../img/Slime/Idle_Left.png',
         scale: 1.3,
@@ -103,5 +103,67 @@ function randomizeDirection() {
         return 'right';
     } else {
         return 'left';
+    }
+}
+
+
+function checkForVerticalCollissions(object) {
+    for(let i=0; i< collissionBlocksArray.length; i++) {
+
+        const currentBlock = collissionBlocksArray[i]
+        if ( detectCollission({ obj1: object, obj2: currentBlock}) ) {
+            if(object.velocity.y > 0) { //moving downward
+                object.velocity.y = 0; //stahp
+                object.isGrounded=true;
+             object.position.y = currentBlock.position.y -object.height-0.02 //(small buffer to make sure no further collission blocks are accidentally passed)
+                break
+            }
+            if(object.velocity.y<0) { //moving upward
+                object.velocity.y=0;
+                object.position.y = currentBlock.position.y  + currentBlock.height + 0.02
+                break
+            }
+        }
+
+    }
+
+    //console.log(platformBlocksArray)
+
+    for(let i=0; i< platformBlocksArray.length; i++) {
+
+        const currentPlatform = platformBlocksArray[i]
+        if ( platformCollission({ obj1: object, obj2: currentPlatform}) ) {
+            if(object.velocity.y > 0) { //moving downward
+                object.velocity.y = 0; //stahp
+                object.isGrounded=true;
+
+                const offset = object.position.y - object.position.y + object.height
+
+                object.position.y = currentPlatform.position.y -offset -0.02 //(small buffer to make sure no further collission blocks are accidentally passed)
+                break
+            }
+          //No case for moving upward so the object can move directly through the platforms
+        }
+
+    }
+}
+
+function checkForHorizontalCollissions(object) {
+    for(let i=0; i< collissionBlocksArray.length; i++) {
+        const currentBlock = collissionBlocksArray[i]
+
+        if ( detectCollission({ obj1: object, obj2: currentBlock}) ) {
+            if(object.velocity.x > 0) { //moving to the right
+                object.velocity.x = 0; //stahp
+                object.position.x = currentBlock.position.x - object.width -0.02 //(buffer to make sure player cannot move past any collission blocks to the right)
+                break
+            }
+            if(object.velocity.x<0) { //moving left
+                object.velocity.x=0;
+                object.position.x = currentBlock.position.x + currentBlock.width + 0.02
+                break
+            }
+        }
+
     }
 }
