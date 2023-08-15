@@ -1,3 +1,4 @@
+var HURTING = false;
 
 class Sprite {
     constructor({position, imageSrc, scale=1, numFrames=1, animationSpeed = ANIMATION_SPEED}) {
@@ -55,6 +56,9 @@ class Sprite {
     }
 }
 
+var flag = true;
+var CANHURT=true;
+
 //Class for the player
 class Player extends Sprite {
     constructor({position, imgSrc, scale=1, numFrames = 1, sprites}) {
@@ -85,7 +89,7 @@ class Player extends Sprite {
                 y:this.position.y
             },
             width: 200,
-            height: 80
+            height: 100
         },
         this.hitBox = {
             position: {
@@ -219,7 +223,7 @@ class Player extends Sprite {
         this.checkForSlimesCollissions()
         this.checkForCoinCollection()
         
-        //console.log( 'x '+this.position.x + ' y ' + this.position.y)
+        console.log( 'x '+this.position.x + ' y ' + this.position.y)
     }
 
     applyGravity () {
@@ -365,13 +369,16 @@ class Player extends Sprite {
 
             const currentSlime = slimesArray[i]
             if ( detectCollission({ obj1: this.hitBox, obj2: currentSlime}) ) {
-                if(this.velocity.y > 0 && !this.isGrounded && currentSlime.isAlive && (this.position.y + this.height < currentSlime.position.y+currentSlime.height-5)) { //moving downward
+                if( this.velocity.y > 0 && !this.isGrounded && currentSlime.isAlive && (this.position.y + this.height < currentSlime.position.y+currentSlime.height-10)) { //moving downward
                     slimesArray[i].setSprite("death") //isAlive=false will automatically be set at last frame
                     slimesArray[i].velocity.x=0;
+                    splat.currentTime=0
                     splat.play()
-                    break
+                    CANHURT = false
+                   
                 }
-                else {
+                else   {
+                    console.log("this code called")
                     switch(currentSlime.direction) {
                         case 'left':
                             slimesArray[i].setSprite("attackLeft");
@@ -381,8 +388,18 @@ class Player extends Sprite {
                                 break;
                     }
 
-                    //PLAYER HEALTH SUBTRACT HERE
-                    break
+                    if (!HURTING) {
+                        for (let i = 2; i >= 0; i--) {
+                            if (hearts[i].filled !== 0) {
+                                hearts[i].hurt();
+                                HURTING = true;
+                                setTimeout(() => {
+                                    HURTING = false;
+                                }, 3000)
+                                break;
+                            }
+                        }
+                    }
                 }
             } else if( inSlimeRange({player: this, slime: currentSlime}) && currentSlime.image != currentSlime.sprites.death.image) {
                 if(onLeftOfSlime({player: this, slime: currentSlime})) {
@@ -643,5 +660,35 @@ class Enemy extends Sprite {
 
         }
     }
-    
 }
+
+
+
+class Heart extends Sprite {
+    constructor({position, imgSrc = '../img/heart/heart_sheet.png', scale=2.5, numFrames = 5}) {
+        super( {position: position, imageSrc: imgSrc , scale, numFrames})
+        this.filled = 1.0
+    }
+
+
+    hurt() {
+        if(this.filled === 0) { //empty
+            this.image.src = '../img/heart/border.png'
+            this.currentFrame = 0
+            this.numFrames=1
+        } else {
+            this.currentFrame++
+            this.filled -= 0.25
+       }
+    }
+
+    heal() {
+        if(this.filled === 1 ) {
+            return;
+        } else {
+            this.currentFrame --;
+            this.filled += 0.25;
+        }
+    }
+}
+

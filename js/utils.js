@@ -62,10 +62,10 @@ function createSlime(xpos, ypos) {
     const slime = new Enemy( {
         position: {
             x: xpos,
-            y: ypos - 18
+            y: ypos - 17
         },
         imgSrc: '../img/Slime/Idle_Left.png',
-        scale: 1.4,
+        scale: 1.3,
         numFrames: 4,
         sprites: {
             death: {

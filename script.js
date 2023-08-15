@@ -14,7 +14,7 @@ const ANIMATION_SPEED = 8; //smaller value = faster animation
 const TILE_DIM = 16; //tile dimesions 16x16
 const MAP_WIDTH = 70 //map width in tiles i.e. 70 tiles wide not 70px
 const MAP_HEIGHT = 40 //Same as above
-const ENEMY_VERTICAL_RANGE = 10; //How far off (vertically) enemies can spot you
+const ENEMY_VERTICAL_RANGE = 30; //How far off (vertically) enemies can spot you
 
 //---------------------Key Controls---------------------
 const KEYS = {
@@ -28,6 +28,16 @@ const KEYS = {
         pressed: false
     }
 }
+
+
+const testHeart = new Heart ( {
+    position: {
+        x: 0,
+        y:0
+    },
+    scale: 2
+
+})
 
 var getCoin = new Audio('./audio/oot_rupee_get.mp3')
 var splat = new Audio('./audio/splat.mp3')
@@ -136,6 +146,16 @@ const victorySheet = new Sprite( {
     numFrames: 13
 })
 
+const hearts = [] 
+for(let i=0; i<3; i++) {
+    hearts[i] =  new Heart({
+        position: {
+            x: canvas.width - 50 - i*45,
+            y: 20
+        }
+    })
+}
+
 const player = new Player( {
     position: {
         x: 20, 
@@ -225,7 +245,18 @@ function animate() {
     //Draw out the player
     player.update();
 
+    
+
     canvasContext.restore();
+
+    // testHeart.position.x = canvas.width - 50
+    // testHeart.position.y = 20
+    
+    // testHeart.draw()
+    hearts.forEach(heart => {
+        heart.draw();
+    })
+
     if(player.coinsCollected === numCoins) {
         // canvasContext.fillStyle = 'rgba(0,0,0,0.6)'
         // canvasContext.fillRect(0, 0, canvas.width, canvas.height);
