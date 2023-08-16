@@ -7,7 +7,8 @@ class Enemy extends Sprite {
         },
         this.sprites=sprites,
         this.direction = randomizeDirection(), //keep track of direction facing
-        this.isAlive = true
+        this.isAlive = true,
+        this.hurtSound=  new Audio('./audio/splat.mp3')
 
         //Creaitng new images and setting up the sprites
         for (const key in this.sprites) {

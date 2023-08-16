@@ -40,7 +40,7 @@ const testHeart = new Heart({
 })
 
 var getCoin = new Audio('./audio/oot_rupee_get.mp3')
-var splat = new Audio('./audio/splat.mp3')
+
 //map width = 70 tiles
 //map height = 40 tiles
 //tile: 16x16px
@@ -183,13 +183,13 @@ const player = new Player({
             spriteSrc: './img/Player/Run_Right.png',
             numFrames: 4
         },
-        jumpLeft: {
-            spriteSrc: './img/Player/Jump_Left.png',
-            numFrames: 9
+        hurtLeft: {
+            spriteSrc: './img/Player/Hurt_Left.png',
+            numFrames:2
         },
-        jumpRight: {
-            spriteSrc: './img/Player/Jump_Right.png',
-            numFrames: 9
+        hurtRight: {
+            spriteSrc: './img/Player/Hurt_Right.png',
+            numFrames: 2
         },
         death: {
             spriteSrc: './img/Player/Death.png',
@@ -302,14 +302,7 @@ function animate() {
 
     } else if (player.velocity.y !== 0 && player.lastKey == 'w') {
 
-        switch (player.direction) {
-            case 'left':
-                player.setSprite('jumpLeft');
-                break;
-            case 'right':
-                player.setSprite('jumpRight');
-                break;
-        }
+       
     }
     else {
         player.velocity.x = 0;
