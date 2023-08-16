@@ -40,14 +40,6 @@ body {
     display: inline-block;
 }
 
-#topBar {
-    position: absolute;
-    display: flex;
-    align-items: center;
-    width: 100%;
-    padding: 20px;
-}
-
 #scoreInfo {
     position: absolute;
     color: white;
@@ -75,22 +67,23 @@ body {
 .coinBarContainer {
     position: relative;
     align-items: flex-end;
-    width: 55%;
+    width: 100%;
     border: 1px solid white;
     border-radius: 10px;
     margin: 10px;
 }
 
 .coinBarBg {
-    background-color:darkgray;
+    background-color:rgb(112, 112, 112);
     height: 30px;
     width: 100%;
     background-image: url("./img/healthbar_bg.png");
+    background-blend-mode:luminosity;
     border-radius: 10px;
 }
 
 #coinBar {
-    background-color: #f5df54;
+    background-color: #e4d053;
     left:0;
     width: 0%;
 }
@@ -107,8 +100,8 @@ body {
 
 #game {
     display: flex;
-    padding-top: 50px;
-    
+    justify-content: center;
+    align-items: center;
 }
 
 

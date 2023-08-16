@@ -29,40 +29,32 @@ const KEYS = {
     }
 }
 
-
-const testHeart = new Heart({
-    position: {
-        x: 0,
-        y: 0
-    },
-    scale: 2
-
-})
-
 var getCoin = new Audio('./audio/oot_rupee_get.mp3')
+var gameOverSound = new Audio('./audio/zelda_secret_sound.mp3')
+var victorySound = new Audio('./audio/rupee-collect.mp3')
 
 //map width = 70 tiles
 //map height = 40 tiles
 //tile: 16x16px
 //Creating 2-d Arrays to loop through columns and rows
 const floorCollissions2D = []
-for (let i = 0; i < floorCollissions.length; i += 70) {
-    floorCollissions2D.push(floorCollissions.slice(i, i + 70)) //pushing an array of length 70 (one row)
+for (let i = 0; i < floorCollissionsMap1.length; i += 70) {
+    floorCollissions2D.push(floorCollissionsMap1.slice(i, i + 70)) //pushing an array of length 70 (one row)
 }
 
 const platformCollissions2D = []
-for (let i = 0; i < platformCollissions.length; i += 70) {
-    platformCollissions2D.push(platformCollissions.slice(i, i + 70)) //pushing an array of length 70 (one row)
+for (let i = 0; i < platformCollissionsMap1.length; i += 70) {
+    platformCollissions2D.push(platformCollissionsMap1.slice(i, i + 70)) //pushing an array of length 70 (one row)
 }
 
 const coins2D = []
-for (let i = 0; i < coins.length; i += 70) {
-    coins2D.push(coins.slice(i, i + 70)) //pushing an array of length 70 (one row)
+for (let i = 0; i < coinsMap1.length; i += 70) {
+    coins2D.push(coinsMap1.slice(i, i + 70)) //pushing an array of length 70 (one row)
 }
 
 const slimes2D = []
-for (let i = 0; i < slimes.length; i += 70) {
-    slimes2D.push(slimes.slice(i, i + 70))
+for (let i = 0; i < slimesMap1.length; i += 70) {
+    slimes2D.push(slimesMap1.slice(i, i + 70))
 }
 
 //These are arrays of the CollisionBlock's for ground and platform
@@ -207,8 +199,6 @@ const backgroundLev1 = new Sprite({
     imageSrc: './img/map.png'
 })
 
-console.log(platformBlocksArray);
-
 //Dynamic storage to tell how much to offset the canvas
 const translateValues = {
     position: {
@@ -267,6 +257,7 @@ function animate() {
         canvasContext.fillRect(0, 0, canvas.width, canvas.height);
 
         VictorySheet.update();
+        victorySound.play();
 
     }
 
@@ -274,6 +265,7 @@ function animate() {
         canvasContext.fillStyle = 'rgba(78,60,92,255)'
         canvasContext.fillRect(0, 0, canvas.width, canvas.height);
         GameOverSheet.update();
+        gameOverSound.play();
     }
 
     if (player.velocity.y < 0) { //moving up
