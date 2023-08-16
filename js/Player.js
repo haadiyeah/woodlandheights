@@ -74,7 +74,7 @@ class Player extends Sprite {
         //Updating camera box side
         let cameraRight = this.cameraBox.position.x + this.cameraBox.width
 
-        if (cameraRight >= MAP_WIDTH * TILE_DIM) {
+        if (cameraRight >= currentLevel.mapWidth * TILE_DIM) {
             return
         }
 
@@ -109,7 +109,7 @@ class Player extends Sprite {
 
     //when moving down
     panCameraUp() {
-        if ((this.cameraBox.position.y + this.cameraBox.height + this.velocity.y) >= MAP_HEIGHT * TILE_DIM) {
+        if ((this.cameraBox.position.y + this.cameraBox.height + this.velocity.y) >= currentLevel.mapHeight * TILE_DIM) {
             return;
         }
 
@@ -157,12 +157,12 @@ class Player extends Sprite {
 
         //Halt movement on x axis if colliding with map corners
         //checking one frame in advance (adding velocity)
-        if (this.position.x + this.width + this.velocity.x >= MAP_WIDTH * TILE_DIM ||
+        if (this.position.x + this.width + this.velocity.x >= currentLevel.mapWidth * TILE_DIM ||
             this.position.x + this.velocity.x <= 0) {
             this.velocity.x = 0;
         }
         //halt movement on y axis if colliding with map top
-        if (this.position.y + this.height + this.velocity.y >= MAP_HEIGHT * TILE_DIM) {
+        if (this.position.y + this.height + this.velocity.y >= currentLevel.mapHeight * TILE_DIM) {
             this.velocity.y = 0;
         }
 
@@ -178,20 +178,20 @@ class Player extends Sprite {
         this.hearts.forEach(heart => {
             this.life += heart.filled;
         })
-        if (this.life === 0 || this.position.y > 560) {
+        if (this.life === 0 || (this.position.y + this.height) > currentLevel.waterLevel) {
             this.setSprite('death');
         }
 
         //the order of these function calls is imp - do not change
         this.updateBoxes()
-        checkForHorizontalCollissions(this.hitBox);
+        checkForHorizontalCollissions(this);
         this.applyGravity();
         this.updateBoxes()
-        this.checkForVerticalCollissions()
+        this.checkForVerticalCollissions() //has its own function for this 
         this.checkForSlimesCollissions()
         this.checkForCoinCollection()
 
-        //console.log('x ' + this.position.x + ' y ' + this.position.y)
+        console.log('x ' + this.position.x + ' y ' + this.position.y)
     }
 
     applyGravity() {
@@ -276,9 +276,9 @@ class Player extends Sprite {
     }
 
     checkForVerticalCollissions() {
-        for (let i = 0; i < collissionBlocksArray.length; i++) {
+        for (let i = 0; i < currentLevel.collissionBlocksArray.length; i++) {
 
-            const currentBlock = collissionBlocksArray[i]
+            const currentBlock = currentLevel.collissionBlocksArray[i]
             if (detectCollission({ obj1: this, obj2: currentBlock })) {
                 //Stop movement on y axis and set position
                 if (this.velocity.y > 0) { //moving downward
@@ -297,11 +297,11 @@ class Player extends Sprite {
 
         }
 
-        //console.log(platformBlocksArray)
+        //console.log(currentLevel.platformBlocksArray)
 
-        for (let i = 0; i < platformBlocksArray.length; i++) {
+        for (let i = 0; i < currentLevel.platformBlocksArray.length; i++) {
 
-            const currentPlatform = platformBlocksArray[i]
+            const currentPlatform = currentLevel.platformBlocksArray[i]
             if (platformCollission({ obj1: this.hitBox, obj2: currentPlatform })) {
 
                 //stop movement on y axis and set position
@@ -321,17 +321,17 @@ class Player extends Sprite {
     }
 
     checkForCoinCollection() {
-        for (let i = 0; i < coinsArray.length; i++) {
-            const currentCoin = coinsArray[i]
+        for (let i = 0; i < currentLevel.coinsArray.length; i++) {
+            const currentCoin = currentLevel.coinsArray[i]
 
             if (detectCollission({ obj1: this.hitBox, obj2: currentCoin }) && currentCoin.isCollected == false) {
-                coinsArray[i].isCollected = true;
-                getCoin.currentTime = 0
-                getCoin.play()
+                currentLevel.coinsArray[i].isCollected = true;
+                //getCoin.currentTime = 0
+                playGetCoin()
                 this.coinsCollected++;
 
                 gsap.to('#coinBar', {
-                    width: ((this.coinsCollected / numCoins) * 100) + '%'
+                    width: ((this.coinsCollected / currentLevel.numCoins) * 100) + '%'
                 })
 
             }
@@ -340,30 +340,30 @@ class Player extends Sprite {
     }
 
     checkForSlimesCollissions() {
-        for (let i = 0; i < slimesArray.length; i++) {
-            const currentSlime = slimesArray[i]
+        for (let i = 0; i < currentLevel.slimesArray.length; i++) {
+            const currentSlime = currentLevel.slimesArray[i]
 
             //Player and slime are touching
             if (detectCollission({ obj1: this.hitBox, obj2: currentSlime })) {
 
                 //Player is hitting slime from the top - slime dies
                 if (this.velocity.y > 0 && !this.isGrounded && currentSlime.isAlive && (this.position.y + this.height < currentSlime.position.y + currentSlime.height - 10)) { //moving downward
-                    slimesArray[i].setSprite("death") //isAlive=false will automatically be set at last frame
-                    slimesArray[i].velocity.x = 0;
-                    slimesArray[i].hurtSound.play();
+                   currentLevel.slimesArray[i].setSprite("death") //isAlive=false will automatically be set at last frame
+                   currentLevel.slimesArray[i].velocity.x = 0;
+                   currentLevel.slimesArray[i].hurtSound.play();
                 }
                 else { //Player is hitting slime from the right/left
 
                     switch (currentSlime.direction) {
                         case 'left':
-                            slimesArray[i].setSprite("attackLeft");
+                            currentLevel.slimesArray[i].setSprite("attackLeft");
                             break;
                         case 'right':
-                            slimesArray[i].setSprite("attackRight");
+                            currentLevel.slimesArray[i].setSprite("attackRight");
                             break;
                     }
 
-                    if (!this.hurting && slimesArray[i].image != slimesArray[i].sprites.death.image) {
+                    if (!this.hurting &&  currentLevel.slimesArray[i].image !=  currentLevel.slimesArray[i].sprites.death.image) {
                         for (let i = 2; i >= 0; i--) {
                             if (this.hearts[i].filled !== 0) {
                                 //Reducing the health
@@ -393,35 +393,35 @@ class Player extends Sprite {
                 }
             } else if (inSlimeRange({ player: this, slime: currentSlime }) && currentSlime.image != currentSlime.sprites.death.image) {
                 if (onLeftOfSlime({ player: this, slime: currentSlime })) {
-                    slimesArray[i].velocity.x = -MOVEMENT_SPEED;
-                    slimesArray[i].direction = 'left';
-                    slimesArray[i].setSprite("attackLeft");
+                    currentLevel.slimesArray[i].velocity.x = -MOVEMENT_SPEED;
+                    currentLevel.slimesArray[i].direction = 'left';
+                    currentLevel.slimesArray[i].setSprite("attackLeft");
                 } else if (onRightOfSlime({ player: this, slime: currentSlime }) && currentSlime.image != currentSlime.sprites.death.image) {
-                    slimesArray[i].velocity.x = MOVEMENT_SPEED;
-                    slimesArray[i].direction = 'right';
-                    slimesArray[i].setSprite("attackRight");
+                    currentLevel.slimesArray[i].velocity.x = MOVEMENT_SPEED;
+                    currentLevel.slimesArray[i].direction = 'right';
+                    currentLevel.slimesArray[i].setSprite("attackRight");
                 }
             } else {
                 switch (currentSlime.direction) {
                     case 'left':
-                        slimesArray[i].setSprite("idleLeft");
+                        currentLevel.slimesArray[i].setSprite("idleLeft");
                         break;
                     case 'right':
-                        slimesArray[i].setSprite("idleRight");
+                        currentLevel.slimesArray[i].setSprite("idleRight");
                         break;
                 }
-                slimesArray[i].velocity.x = 0;
+                currentLevel.slimesArray[i].velocity.x = 0;
 
             }
 
 
         }
 
-        //console.log(platformBlocksArray)
+        //console.log(currentLevel.platformBlocksArray)
 
-        for (let i = 0; i < platformBlocksArray.length; i++) {
+        for (let i = 0; i < currentLevel.platformBlocksArray.length; i++) {
 
-            const currentPlatform = platformBlocksArray[i]
+            const currentPlatform = currentLevel.platformBlocksArray[i]
             if (platformCollission({ obj1: this.hitBox, obj2: currentPlatform })) {
                 if (this.velocity.y > 0) { //moving downward
                     this.velocity.y = 0; //stahp

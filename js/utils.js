@@ -108,9 +108,9 @@ function randomizeDirection() {
 
 
 function checkForVerticalCollissions(object) {
-    for(let i=0; i< collissionBlocksArray.length; i++) {
+    for(let i=0; i< currentLevel.collissionBlocksArray.length; i++) {
 
-        const currentBlock = collissionBlocksArray[i]
+        const currentBlock = currentLevel.collissionBlocksArray[i]
         if ( detectCollission({ obj1: object, obj2: currentBlock}) ) {
             if(object.velocity.y > 0) { //moving downward
                 object.velocity.y = 0; //stahp
@@ -127,11 +127,11 @@ function checkForVerticalCollissions(object) {
 
     }
 
-    //console.log(platformBlocksArray)
+    //console.log(currentLevel.platformBlocksArray)
 
-    for(let i=0; i< platformBlocksArray.length; i++) {
+    for(let i=0; i< currentLevel.platformBlocksArray.length; i++) {
 
-        const currentPlatform = platformBlocksArray[i]
+        const currentPlatform = currentLevel.platformBlocksArray[i]
         if ( platformCollission({ obj1: object, obj2: currentPlatform}) ) {
             if(object.velocity.y > 0) { //moving downward
                 object.velocity.y = 0; //stahp
@@ -149,8 +149,8 @@ function checkForVerticalCollissions(object) {
 }
 
 function checkForHorizontalCollissions(object) {
-    for(let i=0; i< collissionBlocksArray.length; i++) {
-        const currentBlock = collissionBlocksArray[i]
+    for(let i=0; i< currentLevel.collissionBlocksArray.length; i++) {
+        const currentBlock = currentLevel.collissionBlocksArray[i]
 
         if ( detectCollission({ obj1: object, obj2: currentBlock}) ) {
             if(object.velocity.x > 0) { //moving to the right

@@ -12,9 +12,10 @@ const MOVEMENT_SPEED = 2;
 const BACKGROUND_SCALE = 2.4; //how much to zoom in background
 const ANIMATION_SPEED = 8; //smaller value = faster animation
 const TILE_DIM = 16; //tile dimesions 16x16
-const MAP_WIDTH = 70 //map width in tiles i.e. 70 tiles wide not 70px
-const MAP_HEIGHT = 40 //Same as above
+// const MAP_WIDTH = 70 //map width in tiles i.e. 70 tiles wide not 70px
+// const MAP_HEIGHT = 40 //Same as above
 const ENEMY_VERTICAL_RANGE = 30; //How far off (vertically) enemies can spot you
+var PLAYEDSOUND =false;
 
 //---------------------Key Controls---------------------
 const KEYS = {
@@ -29,104 +30,52 @@ const KEYS = {
     }
 }
 
-var getCoin = new Audio('./audio/oot_rupee_get.mp3')
+function playGetCoin(  ) {
+    var getCoin = new Audio('./audio/oot_rupee_get.mp3')
+    getCoin.play();
+
+    getCoin.onended = function(){
+        this.currentSrc = null;
+        this.src = "";
+        this.srcObject = null;
+        this.remove();
+    };
+}
+
 var gameOverSound = new Audio('./audio/zelda_secret_sound.mp3')
-var victorySound = new Audio('./audio/rupee-collect.mp3')
+
+function playGameOver() {
+    var gameOverSound = new Audio('./audio/zelda_secret_sound.mp3')
+    gameOverSound.play();
+
+    gameOverSound.onended = function(){
+        this.currentSrc = null;
+        this.src = "";
+        this.srcObject = null;
+        this.remove();
+    };
+}
+
+function playVictory() {
+    var victorySound = new Audio('./audio/rupee-collect.mp3')
+    victorySound.play();
+
+    victorySound.onended = function(){
+        this.currentSrc = null;
+        this.src = "";
+        this.srcObject = null;
+        this.remove();
+    };
+}
 
 //map width = 70 tiles
 //map height = 40 tiles
 //tile: 16x16px
-//Creating 2-d Arrays to loop through columns and rows
-const floorCollissions2D = []
-for (let i = 0; i < floorCollissionsMap1.length; i += 70) {
-    floorCollissions2D.push(floorCollissionsMap1.slice(i, i + 70)) //pushing an array of length 70 (one row)
-}
-
-const platformCollissions2D = []
-for (let i = 0; i < platformCollissionsMap1.length; i += 70) {
-    platformCollissions2D.push(platformCollissionsMap1.slice(i, i + 70)) //pushing an array of length 70 (one row)
-}
-
-const coins2D = []
-for (let i = 0; i < coinsMap1.length; i += 70) {
-    coins2D.push(coinsMap1.slice(i, i + 70)) //pushing an array of length 70 (one row)
-}
-
-const slimes2D = []
-for (let i = 0; i < slimesMap1.length; i += 70) {
-    slimes2D.push(slimesMap1.slice(i, i + 70))
-}
-
-//These are arrays of the CollisionBlock's for ground and platform
-const collissionBlocksArray = []; //ground
-const platformBlocksArray = []; //platform
-const coinsArray = []; //coins
-const slimesArray = []
-let numCoins = 0; //counting no. of coins
-
-floorCollissions2D.forEach((row, y) => {
-    row.forEach((item, x) => { //x==column index
-        if (item !== 0) {
-            //console.log("collission block")
-            collissionBlocksArray.push(new CollissionBlock({
-                position: {
-                    x: x * 16,
-                    y: y * 16 //16=size of collission block
-                }
-            }))
-        }
-    })
-
-})
-
-platformCollissions2D.forEach((row, y) => { //looping through rows
-    row.forEach((item, x) => { //for each individual specific symbol
-        if (item !== 0) {
-            platformBlocksArray.push(new CollissionBlock({
-                position: {
-                    x: x * 16,
-                    y: y * 16
-                },
-                height: 9
-            }))
-        }
-        console.log('loooop');
-    })
-})
-
-
-coins2D.forEach((row, y) => { //looping through rows
-    row.forEach((item, x) => { //for each individual specific symbol
-        if (item !== 0) {
-            coinsArray.push(new Coin({
-                position: {
-                    x: x * 16,
-                    y: y * 16
-                },
-                imgSrc: './img/coin.png',
-                numFrames: 14,
-                scale: 1.5,
-                animationSpeed: 3
-            }))
-
-            numCoins++;
-        }
-    })
-})
-
-slimes2D.forEach((row, y) => { //looping through rows
-    row.forEach((item, x) => { //for each individual specific symbol
-        if (item !== 0) {
-            slimesArray.push(createSlime(x * 16, y * 16))
-        }
-    })
-})
 
 const scaledCanvas = {
     width: canvas.width / BACKGROUND_SCALE,
     height: canvas.height / BACKGROUND_SCALE
 }
-
 
 const GameOverSheet = new Sprite({
    position: {
@@ -150,10 +99,23 @@ const VictorySheet = new Sprite({
     imageSrc: './img/Victory.png'
  })
 
+//DIMESIONS: 1120 x 641
+const currentLevel = new Level({
+    position: {
+        x: 0,
+        y: 0
+    },
+    imgSrc: './img/map1.png'
+})
+
+currentLevel.setupLevel(1);
+// player.position.y = currentLevel.playerStartingYPos;
+// translateValues.position.y = currentLevel.yTranslateBg;
+
 const player = new Player({
     position: {
         x: 20,
-        y: 370
+        y: currentLevel.playerStartingYPos
     },
     imgSrc: './img/Player/Idle_Right.png',
     scale: 1.5,
@@ -190,20 +152,11 @@ const player = new Player({
     }
 })
 
-//DIMESIONS: 1120 x 641
-const backgroundLev1 = new Sprite({
-    position: {
-        x: 0,
-        y: 0
-    },
-    imageSrc: './img/map.png'
-})
-
 //Dynamic storage to tell how much to offset the canvas
 const translateValues = {
     position: {
         x: 0,
-        y: scaledCanvas.height - (MAP_HEIGHT * TILE_DIM)
+        y: currentLevel.yTranslateBg //scaling to the bottom
     }
 }
 
@@ -221,23 +174,9 @@ function animate() {
     canvasContext.scale(BACKGROUND_SCALE, BACKGROUND_SCALE); ///does not affect original dimensions of the image- zoom in
     canvasContext.translate(translateValues.position.x, translateValues.position.y) //translate the image
 
+    //Drawing out the level: background, platforms, coins and slimes
+    currentLevel.update();
 
-    //Drawing out the background
-    backgroundLev1.update();
-    //Draw out the collission blocks
-    collissionBlocksArray.forEach(collissionBlick => {
-        collissionBlick.update();
-    })
-    //Draw out the platforms
-    platformBlocksArray.forEach(platform => {
-        platform.update();
-    })
-    coinsArray.forEach(coin => {
-        coin.update();
-    })
-    slimesArray.forEach(slime => {
-        slime.update();
-    })
     //Draw out the player
     player.update();
     //Restoring (zoom and translate won't be applied to anything else)
@@ -252,22 +191,45 @@ function animate() {
         heart.draw();
     })
 
-    if (player.coinsCollected === numCoins) {
+    if(!currentLevel.loaded ) { //Indicating that next level is being setup
         canvasContext.fillStyle = 'rgba(124,148,161,255)'
         canvasContext.fillRect(0, 0, canvas.width, canvas.height);
-
         VictorySheet.update();
-        victorySound.play();
-
     }
+
+
+    if (player.coinsCollected === currentLevel.numCoins) {
+    //if (player.coinsCollected === 3) {
+        currentLevel.loaded = false; // indicator to load new level; will only be false for a few seconds while next level loads
+        player.coinsCollected =0; //Reset for new level
+
+        if(!currentLevel.loaded ) {
+            setTimeout(() => {
+                canvasContext.clearRect(0, 0, canvas.width, canvas.height);
+                currentLevel.setupLevel(2);
+                player.position.y = currentLevel.playerStartingYPos;
+                player.position.x = 20;
+                translateValues.position.y = currentLevel.yTranslateBg;
+                translateValues.position.x = 0;
+                currentLevel.loaded = true;
+            }, 3000)
+        }
+        gsap.to('#coinBar', {
+                    width: (0 + '%')
+                })
+        playVictory(); //Only once because of smart if statement ;))
+    }
+
+   
 
     if(!player.isAlive) {
         canvasContext.fillStyle = 'rgba(78,60,92,255)'
         canvasContext.fillRect(0, 0, canvas.width, canvas.height);
         GameOverSheet.update();
-        gameOverSound.play();
+        gameOverSound.play()
     }
 
+    //Camera panning
     if (player.velocity.y < 0) { //moving up
         player.panCameraDown();
     } else if (player.velocity.y > 0) { //moving down

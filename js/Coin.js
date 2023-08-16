@@ -1,5 +1,5 @@
 class Coin extends Sprite {
-    constructor({position, imgSrc, scale=1, numFrames = 1, value=1, animationSpeed = ANIMATION_SPEED}) {
+    constructor({position, imgSrc = '../img/coin.png', scale=1.5, numFrames = 14, value=1, animationSpeed = 3}) {
         super( {position: position, imageSrc: imgSrc , scale, numFrames, animationSpeed})
         this.isCollected = false
         this.value = value 
