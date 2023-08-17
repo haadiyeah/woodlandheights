@@ -3,6 +3,7 @@ class Level extends Sprite {
         super({ position: position, imageSrc: imgSrc, scale, numFrames, animationSpeed })
 
         this.loaded=true,
+        this.paused=false,
         this.mapWidth = 70,
         this.mapHeight = 40,
         this.numCoins = 0,
@@ -155,6 +156,41 @@ class Level extends Sprite {
         })
         
     }
+
+    pausedDraw() {
+        if (!this.loaded)
+            return;
+        else {
+            canvasContext.drawImage(
+                this.image,
+                this.currentFrame * (this.image.width / this.numFrames), //x crop mark
+                0, //y crop mark
+                this.image.width / this.numFrames, //width of area to crop
+                this.image.height, //height of crop area
+                this.position.x,
+                this.position.y,
+                this.width ,
+                this.height 
+            )
+        }
+
+        this.collissionBlocksArray.forEach(collissionBlick => {
+            collissionBlick.draw();
+        })
+        //Draw out the platforms
+        this.platformBlocksArray.forEach(platform => {
+            platform.draw();
+        })
+        this.coinsArray.forEach(coin => {
+            if(!coin.isCollected)
+                coin.draw();
+        })
+        this.slimesArray.forEach(slime => {
+            slime.draw();
+        })
+
+    }
+
 
     update() {
         this.draw();

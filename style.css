@@ -96,31 +96,39 @@ body {
     left: 0;
     padding-left: 5px;
     margin-left: 5px;
+    display: block;
 }
-
 #game {
     display: flex;
-    justify-content: center;
-    align-items: center;
 }
 
 
 
   #refreshBtn {
-    background-color: #68977c;
+    background-color: #6d7eaf;
+  }
+
+  #pauseBtn {
+    background-color: #75c9b1;
+  }
+
+  button {
     border-radius: 40px;
     transition: transform 0.7s ease-in-out;
   }
 
-  #refreshBtn:hover {
+  button:hover {
     transform: rotate(360deg);
-    background-color: #8ea799;
-
+    background-color: #d3e6ec;
   }
 
 
-  #refreshBtnImg {
+  .btnImg {
     width: 60px;
     height: 60px;
+  }
+
+  .btnContainer {
+    padding-bottom: 15px;
   }
   

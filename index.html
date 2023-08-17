@@ -19,6 +19,9 @@
         <div class="textBox">
             <h1>Woodland Heights</h1>
         </div>
+        <div class="textBox">
+            <p style="color: antiquewhite;">Your goal is simple. <br> Collect all the coins and stay alive. </p>
+        </div>
        
         <div class="textBox" id="topBar">
             <!--Coin collection bar -->
@@ -33,16 +36,23 @@
         <br>
         <div id="game">
             <div id="mainDiv">
-                <div id="scoreInfo"></div>
+                <div id="scoreInfo"> Game Paused </div>
                 <canvas id="canvas"></canvas>
             </div>
             <div id="sidediv">
-                <!--If replay/mute/pause button, it goes here-->
+                <div class="btnContainer">
+                <button id="refreshBtn" onclick="restart()">
+                    <img src="./img/reload.png" alt="reload button" class="btnImg" id="reloadBtnImg" />
+                </button>
+            </div>
+                <div class="btnContainer">
+                <button id="pauseBtn" onclick="pause()">
+                    <img src="./img/pause.png" alt="pause button" class="btnImg" id="pauseBtnImg"/>
+                </button>
+            </div>
             </div>
         </div>
-        <div class="textBox">
-            <p style="color: antiquewhite;">Stay alive and collect all the coins to keep adventuring... <br> </p>
-        </div>
+        
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"

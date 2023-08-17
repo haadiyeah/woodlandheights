@@ -1,6 +1,6 @@
 class Enemy extends Sprite {
-    constructor({position, imgSrc, scale=1, numFrames = 1, sprites}) {
-        super( {position: position, imageSrc: imgSrc , scale, numFrames})
+    constructor({position, imgSrc, scale=1, numFrames = 1, sprites, animationSpeed = ANIMATION_SPEED}) {
+        super( {position: position, imageSrc: imgSrc , scale, numFrames, animationSpeed})
         this.velocity = {
             x: 0,
             y: 0
@@ -20,7 +20,17 @@ class Enemy extends Sprite {
     applyGravity () {
         this.position.y += this.velocity.y
         this.velocity.y += GRAVITY
-      
+    }
+
+    //x1=left bound, x2=right bound
+    moveBetween(x1 = 995, x2=1545) {
+         if(this.position.x <= x1) {
+            this.velocity.x = MOVEMENT_SPEED;
+            this.setSprite('runRight');
+        } else if(this.position.x >= x2) {
+            this.velocity.x = MOVEMENT_SPEED;
+            this.setSprite('runRight');
+        }
     }
 
     //Overriding parent func
@@ -38,9 +48,7 @@ class Enemy extends Sprite {
             
         }
 
-    //this.setSprite("attack");
-      
-        
+    //this.setSprite("attack");   
     }
 
     setSprite(sprite) {

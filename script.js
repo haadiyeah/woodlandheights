@@ -5,6 +5,9 @@ const canvasContext = canvas.getContext('2d');
 canvas.width = 64 * 16
 canvas.height = 64 * 9
 
+//----Level tracker
+let level = 1;
+
 //---------Consts----------
 const GRAVITY = 0.2;
 const JUMP_FORCE = -5;
@@ -12,10 +15,7 @@ const MOVEMENT_SPEED = 2;
 const BACKGROUND_SCALE = 2.4; //how much to zoom in background
 const ANIMATION_SPEED = 8; //smaller value = faster animation
 const TILE_DIM = 16; //tile dimesions 16x16
-// const MAP_WIDTH = 70 //map width in tiles i.e. 70 tiles wide not 70px
-// const MAP_HEIGHT = 40 //Same as above
 const ENEMY_VERTICAL_RANGE = 30; //How far off (vertically) enemies can spot you
-var PLAYEDSOUND =false;
 
 //---------------------Key Controls---------------------
 const KEYS = {
@@ -30,43 +30,7 @@ const KEYS = {
     }
 }
 
-function playGetCoin(  ) {
-    var getCoin = new Audio('./audio/oot_rupee_get.mp3')
-    getCoin.play();
-
-    getCoin.onended = function(){
-        this.currentSrc = null;
-        this.src = "";
-        this.srcObject = null;
-        this.remove();
-    };
-}
-
 var gameOverSound = new Audio('./audio/zelda_secret_sound.mp3')
-
-function playGameOver() {
-    var gameOverSound = new Audio('./audio/zelda_secret_sound.mp3')
-    gameOverSound.play();
-
-    gameOverSound.onended = function(){
-        this.currentSrc = null;
-        this.src = "";
-        this.srcObject = null;
-        this.remove();
-    };
-}
-
-function playVictory() {
-    var victorySound = new Audio('./audio/rupee-collect.mp3')
-    victorySound.play();
-
-    victorySound.onended = function(){
-        this.currentSrc = null;
-        this.src = "";
-        this.srcObject = null;
-        this.remove();
-    };
-}
 
 //map width = 70 tiles
 //map height = 40 tiles
@@ -109,6 +73,7 @@ const currentLevel = new Level({
 })
 
 currentLevel.setupLevel(1);
+level=1;
 // player.position.y = currentLevel.playerStartingYPos;
 // translateValues.position.y = currentLevel.yTranslateBg;
 
@@ -152,6 +117,39 @@ const player = new Player({
     }
 })
 
+const skelly = new Enemy ({
+    position: {
+        x: 1545,
+        y: 300
+    },
+    imgSrc: './img/Skeleton/Walk_Left.png',
+    scale: 1.5,
+    numFrames: 13,
+    animationSpeed: 4,
+    sprites: {
+       runLeft: {
+            spriteSrc: './img/Skeleton/Walk_Left.png',
+            numFrames: 13
+        },
+       runRight: {
+            spriteSrc: './img/Skeleton/Walk_Right.png',
+            numFrames: 13
+        },
+        attackLeft: {
+            spriteSrc: './img/Skeleton/Attack_Left.png',
+            numFrames: 13
+        },
+        attackRight: {
+            spriteSrc: './img/Skeleton/Attack_Right.png',
+            numFrames: 13
+        },
+        death: {
+            spriteSrc: './img/Skeleton/Death.png',
+            numFrames: 13
+        }
+    }
+
+})
 //Dynamic storage to tell how much to offset the canvas
 const translateValues = {
     position: {
@@ -174,11 +172,22 @@ function animate() {
     canvasContext.scale(BACKGROUND_SCALE, BACKGROUND_SCALE); ///does not affect original dimensions of the image- zoom in
     canvasContext.translate(translateValues.position.x, translateValues.position.y) //translate the image
 
-    //Drawing out the level: background, platforms, coins and slimes
-    currentLevel.update();
+    
 
-    //Draw out the player
-    player.update();
+    if(!currentLevel.paused) {
+        //Drawing out the level: background, platforms, coins and slimes
+        currentLevel.update();
+        //Draw out the player
+        player.update();
+    } else {
+        currentLevel.pausedDraw();
+        player.draw();
+    }
+
+    // if(level===2) {
+    //     skelly.update()
+    //     skelly.moveBetween(995, 1545)
+    // }
     //Restoring (zoom and translate won't be applied to anything else)
     canvasContext.restore();
     //--------------------------------------------------------------------
@@ -190,6 +199,14 @@ function animate() {
     player.hearts.forEach(heart => {
         heart.draw();
     })
+
+    if(currentLevel.paused) {
+        canvasContext.fillStyle = 'rgba(0,0,0,0.8)'
+        canvasContext.fillRect(0, 0, canvas.width, canvas.height);
+        document.getElementById("scoreInfo").style.display = 'flex';
+        document.getElementById("scoreInfo").style.innerHTML = 'Game Paused';
+        return; //dont execute rest of the code
+    }
 
     if(!currentLevel.loaded ) { //Indicating that next level is being setup
         canvasContext.fillStyle = 'rgba(124,148,161,255)'
@@ -206,17 +223,18 @@ function animate() {
         if(!currentLevel.loaded ) {
             setTimeout(() => {
                 canvasContext.clearRect(0, 0, canvas.width, canvas.height);
-                currentLevel.setupLevel(2);
+                currentLevel.setupLevel(++level); //TODO Make this generic!!!
                 player.position.y = currentLevel.playerStartingYPos;
                 player.position.x = 20;
                 translateValues.position.y = currentLevel.yTranslateBg;
                 translateValues.position.x = 0;
                 currentLevel.loaded = true;
-            }, 3000)
-        }
-        gsap.to('#coinBar', {
+                gsap.to('#coinBar', {
                     width: (0 + '%')
                 })
+            }, 3000)
+        }
+       
         playVictory(); //Only once because of smart if statement ;))
     }
 
@@ -271,6 +289,36 @@ function animate() {
     }
 
 }
+
+function restart() {
+    canvasContext.clearRect(0, 0, canvas.width, canvas.height);
+    if(currentLevel.paused)
+        pause(); //will unpause
+
+    currentLevel.setupLevel(level); //current level
+    player.position.y = currentLevel.playerStartingYPos;
+    player.position.x  = 20;
+    translateValues.position.y = currentLevel.yTranslateBg;
+    translateValues.position.x = 0;
+   
+    player.resurrect();
+    gsap.to('#coinBar', {
+        width: (0 + '%')
+    })
+}
+
+function pause() {
+    if (!currentLevel.paused) {
+        currentLevel.paused = true;
+        document.getElementById('pauseBtnImg').src = './img/play.png';
+    } else {
+        currentLevel.paused = false;
+        document.getElementById("scoreInfo").style.display = 'none';
+        document.getElementById('pauseBtnImg').src = './img/pause.png';
+    }
+
+}
+
 
 animate();
 

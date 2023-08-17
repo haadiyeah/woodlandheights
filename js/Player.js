@@ -200,6 +200,22 @@ class Player extends Sprite {
 
     }
 
+    resurrect() {
+        this.coinsCollected = 0;
+        this.isAlive = true;
+        
+        //force setting sprite else it won't change if dead
+        this.image = this.sprites.idleLeft.image
+        this.numFrames = this.sprites.idleLeft.numFrames
+        this.currentFrame = 0
+
+        this.hearts.forEach(heart => {
+            while (heart.filled !== 1) {
+                heart.heal();
+            }
+        })
+    }
+
     setSprite(sprite) {
 
         //If hurting
@@ -343,7 +359,7 @@ class Player extends Sprite {
         for (let i = 0; i < currentLevel.slimesArray.length; i++) {
             const currentSlime = currentLevel.slimesArray[i]
 
-            //Player and slime are touching
+            //this and slime are touching
             if (detectCollission({ obj1: this.hitBox, obj2: currentSlime })) {
 
                 //Player is hitting slime from the top - slime dies

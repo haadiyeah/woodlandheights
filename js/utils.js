@@ -167,3 +167,39 @@ function checkForHorizontalCollissions(object) {
 
     }
 }
+
+//--------Sound playing functions
+function playGetCoin() {
+    var getCoin = new Audio('../audio/oot_rupee_get.mp3')
+    getCoin.play();
+
+    getCoin.onended = function(){
+        this.currentSrc = null;
+        this.src = "";
+        this.srcObject = null;
+        this.remove();
+    };
+}
+function playGameOver() {
+    var gameOverSound = new Audio('../audio/zelda_secret_sound.mp3')
+    gameOverSound.play();
+
+    gameOverSound.onended = function(){
+        this.currentSrc = null;
+        this.src = "";
+        this.srcObject = null;
+        this.remove();
+    };
+}
+
+function playVictory() {
+    var victorySound = new Audio('../audio/rupee-collect.mp3')
+    victorySound.play();
+
+    victorySound.onended = function(){
+        this.currentSrc = null;
+        this.src = "";
+        this.srcObject = null;
+        this.remove();
+    };
+}
