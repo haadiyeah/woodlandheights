@@ -46,26 +46,26 @@ const overlay = {
 }
 
 const GameOverSheet = new Sprite({
-    position: {
-        x: canvas.width / 2 - 180,
-        y: canvas.height / 2 - 70
-    },
-    scale: 4,
-    numFrames: 12,
-    animationSpeed: 4,
-    imageSrc: './img/GameOver-Sheet.png'
+   position: {
+    x:canvas.width/2 - 180,
+    y:canvas.height/2 - 70
+   },
+   scale: 4,
+   numFrames: 12,
+   animationSpeed: 4,
+   imageSrc: './img/GameOver-Sheet.png'
 })
 
 const VictorySheet = new Sprite({
     position: {
-        x: canvas.width / 2 - 140,
-        y: canvas.height / 2 - 80
+     x:canvas.width/2 - 140,
+     y:canvas.height/2 - 80
     },
     scale: 4,
     numFrames: 13,
     animationSpeed: 4,
     imageSrc: './img/Victory.png'
-})
+ })
 
 //DIMESIONS: 1120 x 641
 const currentLevel = new Level({
@@ -75,6 +75,13 @@ const currentLevel = new Level({
     },
     imgSrc: './img/map1.png'
 })
+
+
+
+currentLevel.setupLevel(1);
+level=1;
+// player.position.y = currentLevel.playerStartingYPos;
+// translateValues.position.y = currentLevel.yTranslateBg;
 
 const player = new Player({
     position: {
@@ -103,7 +110,7 @@ const player = new Player({
         },
         hurtLeft: {
             spriteSrc: './img/Player/Hurt_Left.png',
-            numFrames: 2
+            numFrames:2
         },
         hurtRight: {
             spriteSrc: './img/Player/Hurt_Right.png',
@@ -116,7 +123,7 @@ const player = new Player({
     }
 })
 
-const skelly = new Enemy({
+const skelly = new Enemy ({
     position: {
         x: 1545,
         y: 300
@@ -126,11 +133,11 @@ const skelly = new Enemy({
     numFrames: 13,
     animationSpeed: 4,
     sprites: {
-        runLeft: {
+       runLeft: {
             spriteSrc: './img/Skeleton/Walk_Left.png',
             numFrames: 13
         },
-        runRight: {
+       runRight: {
             spriteSrc: './img/Skeleton/Walk_Right.png',
             numFrames: 13
         },
@@ -171,7 +178,7 @@ function animate() {
     canvasContext.scale(BACKGROUND_SCALE, BACKGROUND_SCALE); ///does not affect original dimensions of the image- zoom in
     canvasContext.translate(translateValues.position.x, translateValues.position.y) //translate the image to the correct area
 
-    if (!currentLevel.paused) {
+    if(!currentLevel.paused) {
         //Drawing out the level: background, platforms, coins and slimes
         currentLevel.update();
         //Draw out the player
@@ -186,7 +193,7 @@ function animate() {
     //--------------------------------------------------------------------
 
     //Pause screen
-    if (currentLevel.paused) {
+    if(currentLevel.paused) {
         applyOverlay(0.8, 'black') //fading to black
 
         document.getElementById("scoreInfo").style.display = 'flex'; //making text visible
@@ -197,28 +204,28 @@ function animate() {
         return; //dont execute rest of the code for animation and movement
     }
 
-
+    
     //Drawing the hearts (outside the translated area so that they appear in an absolute position)
     player.hearts.forEach(heart => {
         heart.draw();
     })
 
 
-    if (!currentLevel.loaded) { //Indicating that next level is being setup
+    if(!currentLevel.loaded ) { //Indicating that next level is being setup
         canvasContext.fillStyle = 'rgba(124,148,161,255)'
         canvasContext.fillRect(0, 0, canvas.width, canvas.height); //drawing blue background
-
+       
         VictorySheet.update();
     }
 
 
     if (player.coinsCollected === currentLevel.numCoins) { //COMMENT this line and uncomment the next line to test victory sheet code
-        //if (player.coinsCollected === 3) {
+    //if (player.coinsCollected === 3) {
         currentLevel.loaded = false; // indicator to load new level; will only be false for a few seconds while next level loads
-        player.coinsCollected = 0; //Reset for new level
+        player.coinsCollected =0; //Reset for new level
         playVictory(); //Will play victory jingle once
 
-        if (!currentLevel.loaded) {
+        if(!currentLevel.loaded ) {
             //After 3 seconds, this code will be called; this means victory animation will play for 3s
             setTimeout(() => {
                 canvasContext.clearRect(0, 0, canvas.width, canvas.height); //clearing canvas
@@ -241,11 +248,11 @@ function animate() {
                 })
             }, 3000)
         }
-
+      
     }
 
     //Game over animation incase player dies(reaches last frame of death animation)
-    if (!player.isAlive) {
+    if(!player.isAlive) {
         canvasContext.fillStyle = 'rgba(78,60,92,255)'
         canvasContext.fillRect(0, 0, canvas.width, canvas.height);
         GameOverSheet.update();
@@ -294,9 +301,6 @@ function animate() {
 
 }
 
-
-currentLevel.setupLevel(1);
-level = 1;
 animate();
 
 
