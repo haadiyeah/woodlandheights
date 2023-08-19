@@ -203,3 +203,53 @@ function playVictory() {
         this.remove();
     };
 }
+
+function restart() {
+    //Clear the canvas
+    canvasContext.clearRect(0, 0, canvas.width, canvas.height); 
+    if(currentLevel.paused)
+        pause(); //will unpause
+
+    currentLevel.setupLevel(level); //current level
+
+    //Place player in correct place
+    player.position.y = currentLevel.playerStartingYPos;
+    player.position.x  = 20;
+
+    //Translate map to correct place
+    translateValues.position.y = currentLevel.yTranslateBg;
+    translateValues.position.x = 0;
+
+    //Refill player health in case player was dead
+    player.resurrect();
+
+    //Reset coin bar to empty
+    gsap.to('#coinBar', {
+        width: (0 + '%')
+    })
+}
+
+function pause() {
+    if (!currentLevel.paused) {
+        currentLevel.paused = true;
+        document.getElementById('pauseBtnImg').src = './img/play.png';
+    } else {
+        currentLevel.paused = false;
+        document.getElementById("scoreInfo").style.display = 'none';
+        document.getElementById('pauseBtnImg').src = './img/pause.png';
+        applyOverlay(0, 'black');
+    }
+
+}
+
+//Applies an overlay of the given color with the given opacity
+function applyOverlay(alpha, color) {
+    canvasContext.save()
+    canvasContext.globalAlpha = overlay.opacity
+    canvasContext.fillStyle = color
+    canvasContext.fillRect(0, 0, canvas.width, canvas.height);
+    canvasContext.restore()
+    gsap.to(overlay, {
+        opacity: alpha
+    })
+}
