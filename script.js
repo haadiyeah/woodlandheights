@@ -9,11 +9,11 @@ canvas.height = 64 * 9
 let level = 1;
 
 //---------Consts----------
-const GRAVITY = 0.2; //downward acceleration
+const GRAVITY = 0.2;
 const JUMP_FORCE = -5;
-const MOVEMENT_SPEED = 2; //Movement speed of player and slimes
+const MOVEMENT_SPEED = 2;
 const BACKGROUND_SCALE = 2.4; //how much to zoom in background
-const ANIMATION_SPEED = 8; //Standard animation speed for most sprites; smaller value = faster animation
+const ANIMATION_SPEED = 8; //smaller value = faster animation
 const TILE_DIM = 16; //tile dimesions 16x16
 const ENEMY_VERTICAL_RANGE = 30; //How far off (vertically) enemies can spot you
 
@@ -39,10 +39,6 @@ var gameOverSound = new Audio('./audio/zelda_secret_sound.mp3')
 const scaledCanvas = {
     width: canvas.width / BACKGROUND_SCALE,
     height: canvas.height / BACKGROUND_SCALE
-}
-
-const overlay = {
-    opacity: 0
 }
 
 const GameOverSheet = new Sprite({
@@ -76,6 +72,56 @@ const currentLevel = new Level({
     imgSrc: './img/map1.png'
 })
 
+function restart() {
+    //Clear the canvas
+    canvasContext.clearRect(0, 0, canvas.width, canvas.height); 
+    if(currentLevel.paused)
+        pause(); //will unpause
+
+    currentLevel.setupLevel(level); //current level
+
+    //Place player in correct place
+    player.position.y = currentLevel.playerStartingYPos;
+    player.position.x  = 20;
+
+    //Translate map to correct place
+    translateValues.position.y = currentLevel.yTranslateBg;
+    translateValues.position.x = 0;
+
+    //Refill player health in case player was dead
+    player.resurrect();
+
+    //Reset coin bar to empty
+    gsap.to('#coinBar', {
+        width: (0 + '%')
+    })
+}
+
+function pause() {
+    if (!currentLevel.paused) {
+        currentLevel.paused = true;
+        document.getElementById('pauseBtnImg').src = './img/play.png';
+    } else {
+        currentLevel.paused = false;
+        document.getElementById("scoreInfo").style.display = 'none';
+        document.getElementById('pauseBtnImg').src = './img/pause.png';
+        applyOverlay(0, 'black');
+    }
+
+}
+
+
+//Applies an overlay of the given color with the given
+function applyOverlay(alpha, color) {
+    canvasContext.save()
+    canvasContext.globalAlpha = overlay.opacity
+    canvasContext.fillStyle = color
+    canvasContext.fillRect(0, 0, canvas.width, canvas.height);
+    canvasContext.restore()
+    gsap.to(overlay, {
+        opacity: alpha
+    })
+}
 
 
 currentLevel.setupLevel(1);
@@ -164,8 +210,13 @@ const translateValues = {
     }
 }
 
+const overlay = {
+    opacity: 0
+}
+
+
 function animate() {
-    window.requestAnimationFrame(animate) //Will call repeatedly like an infinite loop
+    window.requestAnimationFrame(animate)
 
     //Drawing the background again in every frame to override the previous frame
     canvasContext.fillStyle = 'white'
@@ -176,7 +227,9 @@ function animate() {
     //--------------------------------------------------------------------
     canvasContext.save();
     canvasContext.scale(BACKGROUND_SCALE, BACKGROUND_SCALE); ///does not affect original dimensions of the image- zoom in
-    canvasContext.translate(translateValues.position.x, translateValues.position.y) //translate the image to the correct area
+    canvasContext.translate(translateValues.position.x, translateValues.position.y) //translate the image
+
+    
 
     if(!currentLevel.paused) {
         //Drawing out the level: background, platforms, coins and slimes
@@ -184,92 +237,80 @@ function animate() {
         //Draw out the player
         player.update();
     } else {
-        currentLevel.pausedDraw(); //paused version of coins,slimes etc will be drawn
-        player.draw(); //player will only be drawn, not animated
+        currentLevel.pausedDraw();
+        player.draw();
     }
 
     //Restoring (zoom and translate won't be applied to anything else)
     canvasContext.restore();
     //--------------------------------------------------------------------
 
-    //Pause screen
-    if(currentLevel.paused) {
-        applyOverlay(0.8, 'black') //fading to black
-
-        document.getElementById("scoreInfo").style.display = 'flex'; //making text visible
-        document.getElementById("scoreInfo").style.innerHTML = 'Game Paused';
-        player.hearts.forEach(heart => { //drawing hearts on top of pause screen
-            heart.draw();
-        })
-        return; //dont execute rest of the code for animation and movement
-    }
-
-    
-    //Drawing the hearts (outside the translated area so that they appear in an absolute position)
     player.hearts.forEach(heart => {
         heart.draw();
     })
 
+    if(currentLevel.paused) {
+        applyOverlay(0.8, 'black') //fading to black
+
+        //Drawing hearts on top of overlay
+        player.hearts.forEach(heart => {
+            heart.draw();
+        })
+       
+        document.getElementById("scoreInfo").style.display = 'flex';
+        document.getElementById("scoreInfo").style.innerHTML = 'Game Paused';
+        return; //dont execute rest of the code
+    }
 
     if(!currentLevel.loaded ) { //Indicating that next level is being setup
         canvasContext.fillStyle = 'rgba(124,148,161,255)'
-        canvasContext.fillRect(0, 0, canvas.width, canvas.height); //drawing blue background
-       
+        canvasContext.fillRect(0, 0, canvas.width, canvas.height);
         VictorySheet.update();
     }
 
 
-    if (player.coinsCollected === currentLevel.numCoins) { //COMMENT this line and uncomment the next line to test victory sheet code
+    if (player.coinsCollected === currentLevel.numCoins) {
     //if (player.coinsCollected === 3) {
         currentLevel.loaded = false; // indicator to load new level; will only be false for a few seconds while next level loads
         player.coinsCollected =0; //Reset for new level
-        playVictory(); //Will play victory jingle once
 
         if(!currentLevel.loaded ) {
-            //After 3 seconds, this code will be called; this means victory animation will play for 3s
             setTimeout(() => {
-                canvasContext.clearRect(0, 0, canvas.width, canvas.height); //clearing canvas
-                currentLevel.setupLevel(++level); //Will reload current level if you're on the last level
-
-                //Move player to correct place to start
+                canvasContext.clearRect(0, 0, canvas.width, canvas.height);
+                currentLevel.setupLevel(++level); //TODO Make this generic!!!
                 player.position.y = currentLevel.playerStartingYPos;
                 player.position.x = 20;
-
-                //Move map to correct place to start
                 translateValues.position.y = currentLevel.yTranslateBg;
                 translateValues.position.x = 0;
-
-                //This will cause victory sheet to not show anymore
                 currentLevel.loaded = true;
-
-                //Reset coin bar to empty
                 gsap.to('#coinBar', {
                     width: (0 + '%')
                 })
             }, 3000)
         }
-      
+       
+        playVictory(); //Only once because of smart if statement ;))
     }
 
-    //Game over animation incase player dies(reaches last frame of death animation)
+   
+
     if(!player.isAlive) {
         canvasContext.fillStyle = 'rgba(78,60,92,255)'
         canvasContext.fillRect(0, 0, canvas.width, canvas.height);
         GameOverSheet.update();
         gameOverSound.play()
-        return; //rest of the code isnt needed
     }
 
     //Camera panning
-    if (player.velocity.y < 0) { // if moving up
+    if (player.velocity.y < 0) { //moving up
         player.panCameraDown();
-    } else if (player.velocity.y > 0) { // if moving down
+    } else if (player.velocity.y > 0) { //moving down
         player.panCameraUp()
     }
 
-    if (player.velocity.x < 0) { //if moving left
+    if (player.velocity.x < 0) { //moving left
         player.panCameraRight();
-    } else if (player.velocity.x > 0) { // if moving right
+    } else if (player.velocity.x > 0) { //moving right
         player.panCameraLeft();
     }
 
@@ -285,9 +326,11 @@ function animate() {
         player.setSprite('runRight');
         player.direction = 'right';
 
+    } else if (player.velocity.y !== 0 && player.lastKey == 'w') {
+
+       
     }
     else {
-        //not moving in either direction
         player.velocity.x = 0;
         switch (player.direction) {
             case 'left':
@@ -301,7 +344,89 @@ function animate() {
 
 }
 
+function restart() {
+    canvasContext.clearRect(0, 0, canvas.width, canvas.height);
+    if(currentLevel.paused)
+        pause(); //will unpause
+
+    currentLevel.setupLevel(level); //current level
+    player.position.y = currentLevel.playerStartingYPos;
+    player.position.x  = 20;
+    translateValues.position.y = currentLevel.yTranslateBg;
+    translateValues.position.x = 0;
+   
+    player.resurrect();
+    gsap.to('#coinBar', {
+        width: (0 + '%')
+    })
+}
+
+function pause() {
+    if (!currentLevel.paused) {
+        currentLevel.paused = true;
+        document.getElementById('pauseBtnImg').src = './img/play.png';
+    } else {
+        currentLevel.paused = false;
+        document.getElementById("scoreInfo").style.display = 'none';
+        document.getElementById('pauseBtnImg').src = './img/pause.png';
+    }
+
+}
+
+
 animate();
 
 
+window.addEventListener('keydown', (event) => {
+    switch (event.key) {
+        // --- MOvement
+        case 'w':
+        case 'W':
+        case 'ArrowUp':
+            if (player.isGrounded) {
+                player.velocity.y = JUMP_FORCE
+                player.isGrounded = false;
+            }
+            KEYS.w.pressed = true
+            player.lastKey = 'w'
+            break
+        case 'd':
+        case 'D':
+        case 'ArrowRight':
+            player.lastKey = 'd'
+            KEYS.d.pressed = true
+            break
+        case 'a':
+        case 'A':
+        case 'ArrowLeft':
+            player.lastKey = 'a'
+            KEYS.a.pressed = true
+            break
+        // ---  Attack
+        case ' ':
+
+            break
+    }
+
+})
+
+window.addEventListener('keyup', (event) => {
+    switch (event.key) {
+        case 'w':
+        case 'W':
+        case 'ArrowUp':
+            KEYS.w.pressed = false
+            break
+        case 'd':
+        case 'D':
+        case 'ArrowRight':
+            KEYS.d.pressed = false
+            break
+        case 'a':
+        case 'A':
+        case 'ArrowLeft':
+            KEYS.a.pressed = false
+            break
+    }
+})
 
