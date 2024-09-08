@@ -9,11 +9,11 @@ canvas.height = 64 * 9
 let level = 1;
 
 //---------Consts----------
-const GRAVITY = 0.2;
-const JUMP_FORCE = -5;
-const MOVEMENT_SPEED = 2;
+const GRAVITY = 0.11;
+const JUMP_FORCE = -4;
+const MOVEMENT_SPEED = 1;
 const BACKGROUND_SCALE = 2.4; //how much to zoom in background
-const ANIMATION_SPEED = 8; //smaller value = faster animation
+const ANIMATION_SPEED = 25; //smaller value = faster animation
 const TILE_DIM = 16; //tile dimesions 16x16
 const ENEMY_VERTICAL_RANGE = 30; //How far off (vertically) enemies can spot you
 
@@ -48,7 +48,7 @@ const GameOverSheet = new Sprite({
    },
    scale: 4,
    numFrames: 12,
-   animationSpeed: 4,
+   animationSpeed: 10,
    imageSrc: './img/GameOver-Sheet.png'
 })
 
